@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Teacher;
 use App\Entity\Room;
+use App\Entity\Subject;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ScraperService
@@ -60,6 +61,28 @@ class ScraperService
             $room_db = new Room();
             $room_db->setName($room['item']);
             $this->entityManager->persist($room_db);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    public function scrapeSubjects(): void
+    {
+        $subject_url = 'https://plan.zut.edu.pl/schedule.php?kind=subject&query=+';
+
+        $response = file_get_contents($subject_url);
+        $subjects = json_decode($response, true);
+
+        $subjects_db = $this->entityManager->getRepository(Subject::class)->findAll();
+
+        foreach ($subjects_db as $subject_db) {
+            $this->entityManager->remove($subject_db);
+        }
+
+        foreach ($subjects as $subject) {
+            $subject_db = new Subject();
+            $subject_db->setName($subject['item']);
+            $this->entityManager->persist($subject_db);
         }
 
         $this->entityManager->flush();

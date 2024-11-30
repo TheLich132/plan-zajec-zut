@@ -31,3 +31,4 @@ Po sklonowaniu repozytorium wykonaj następujące kroki (w katalogu repo):
 # Scrapowanie danych
 * Nauczyciele: `symfony console scrape:teacher`
 * Pokoje: `symfony console scrape:room`
+* Przedmioty: `symfony console scrape:subject`

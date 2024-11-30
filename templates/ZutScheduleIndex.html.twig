@@ -1,11 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <title>{{ title }}</title>
+    <!-- Dodanie wygenerowanego pliku CSS przez Webpack Encore -->
+    {{ encore_entry_link_tags('app') }}
 </head>
 <body>
-<h1>Witamy w ZUT Schedule!</h1>
-<p>Twoja aplikacja działa poprawnie!</p>
+<div class="container">
+    <h1 class="text-primary">Witamy w ZUT Schedule!</h1>
+    <p class="text-success">Twoja aplikacja działa poprawnie!</p>
+    <button class="btn btn-primary">Kliknij mnie!</button>
+</div>
+<!-- Dodanie wygenerowanego pliku JS przez Webpack Encore -->
+{{ encore_entry_script_tags('app') }}
 </body>
 </html>

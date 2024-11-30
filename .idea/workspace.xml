@@ -24,6 +24,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;matimusial&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/TheLich132/plan-zajec-zut.git&quot;,
+    &quot;accountId&quot;: &quot;9c8b53a0-2885-4d5f-bfa2-be907427c15c&quot;
+  }
+}</component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/usr/bin/php8.2">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/composer" />
@@ -207,7 +219,9 @@
       <option name="presentableId" value="Default" />
       <updated>1732921440620</updated>
       <workItem from="1732921449408" duration="2587000" />
-      <workItem from="1732924090803" duration="938000" />
+      <workItem from="1732924090803" duration="3013000" />
+      <workItem from="1732927234751" duration="1108000" />
+      <workItem from="1732928406803" duration="157000" />
     </task>
     <servers />
   </component>

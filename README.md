@@ -2,7 +2,7 @@
 
 ## Instrukcja uruchomienia projektu
 
-Po sklonowaniu repozytorium wykonaj następujące kroki:
+Po sklonowaniu repozytorium wykonaj następujące kroki (w katalogu repo):
 
 1. `composer install`
 

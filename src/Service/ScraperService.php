@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Teacher;
+use App\Entity\Room;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ScraperService
@@ -14,7 +15,6 @@ class ScraperService
         $this->entityManager = $entityManager;
     }
 
-    // Define the scrapeTeachers method
     public function scrapeTeachers(): void
     {
         // URL of the teachers data
@@ -42,4 +42,27 @@ class ScraperService
         // Flush changes to the database
         $this->entityManager->flush();
     }
+
+    public function scrapeRooms(): void
+    {
+        $room_url = 'https://plan.zut.edu.pl/schedule.php?kind=room&query=+';
+
+        $response = file_get_contents($room_url);
+        $rooms = json_decode($response, true);
+
+        $rooms_db = $this->entityManager->getRepository(Room::class)->findAll();
+
+        foreach ($rooms_db as $room_db) {
+            $this->entityManager->remove($room_db);
+        }
+
+        foreach ($rooms as $room) {
+            $room_db = new Room();
+            $room_db->setName($room['item']);
+            $this->entityManager->persist($room_db);
+        }
+
+        $this->entityManager->flush();
+    }
+
 }

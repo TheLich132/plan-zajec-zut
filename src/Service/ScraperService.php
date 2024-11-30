@@ -18,30 +18,21 @@ class ScraperService
 
     public function scrapeTeachers(): void
     {
-        // URL of the teachers data
         $teacher_url = 'https://plan.zut.edu.pl/schedule.php?kind=teacher&query=+';
 
-        // Fetch the data from the URL
         $response = file_get_contents($teacher_url);
         $teachers = json_decode($response, true);
 
-        // Get all existing teachers in the database
-        $teachers_db = $this->entityManager->getRepository(Teacher::class)->findAll();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Teacher')->execute();
 
-        // Remove all teachers from the database
-        foreach ($teachers_db as $teacher_db) {
-            $this->entityManager->remove($teacher_db);
-        }
-
-        // Persist the new teachers
         foreach ($teachers as $teacher) {
             $teacher_db = new Teacher();
             $teacher_db->setName($teacher['item']);
             $this->entityManager->persist($teacher_db);
         }
 
-        // Flush changes to the database
         $this->entityManager->flush();
+        $this->entityManager->clear();
     }
 
     public function scrapeRooms(): void
@@ -51,11 +42,7 @@ class ScraperService
         $response = file_get_contents($room_url);
         $rooms = json_decode($response, true);
 
-        $rooms_db = $this->entityManager->getRepository(Room::class)->findAll();
-
-        foreach ($rooms_db as $room_db) {
-            $this->entityManager->remove($room_db);
-        }
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Room')->execute();
 
         foreach ($rooms as $room) {
             $room_db = new Room();
@@ -64,6 +51,7 @@ class ScraperService
         }
 
         $this->entityManager->flush();
+        $this->entityManager->clear();
     }
 
     public function scrapeSubjects(): void
@@ -73,11 +61,7 @@ class ScraperService
         $response = file_get_contents($subject_url);
         $subjects = json_decode($response, true);
 
-        $subjects_db = $this->entityManager->getRepository(Subject::class)->findAll();
-
-        foreach ($subjects_db as $subject_db) {
-            $this->entityManager->remove($subject_db);
-        }
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Subject')->execute();
 
         foreach ($subjects as $subject) {
             $subject_db = new Subject();
@@ -86,6 +70,7 @@ class ScraperService
         }
 
         $this->entityManager->flush();
+        $this->entityManager->clear();
     }
 
 }

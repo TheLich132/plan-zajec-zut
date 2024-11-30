@@ -21,3 +21,12 @@ Po sklonowaniu repozytorium wykonaj następujące kroki (w katalogu repo):
     - Node.js w wersji 14 lub nowszej.
     - Composer.
 3. Skorzystaj z pomocy ChatGPT, bo projekt działa.
+---
+
+# Odpalenie bazy danych
+1. `symfony console doctrine:database:create`
+2. `symfony console doctrine:migrations:migrate`
+---
+
+# Scrapowanie danych
+* Nauczyciele: `symfony console teacher:scrape`

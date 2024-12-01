@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\Faculty;
+use App\Entity\Group;
+use App\Entity\Lesson;
 use App\Entity\Teacher;
 use App\Entity\Room;
 use App\Entity\Subject;
@@ -13,6 +15,10 @@ class ScraperService
 {
     private EntityManagerInterface $entityManager;
     private RelationService $relationService;
+
+    // TODO: set the start and end date dynamically
+    private string $startDate = '2024-12-02';
+    private string $endDate = '2024-12-03';
 
     public function __construct(EntityManagerInterface $entityManager, RelationService $relationService)
     {
@@ -79,17 +85,13 @@ class ScraperService
 
     public function scrapeStudents(): void
     {
-        // TODO: set those up automatically
-        $start_date = '2023-10-01';
-        $end_date = '2026-02-01';
-
         // TODO: make it not last forever
-        $viable_indexes = range(50955, 50960);
+        $viableIndexes = range(50955, 50960);
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
 
-        foreach ($viable_indexes as $index) {
-            $student_url = 'https://plan.zut.edu.pl/schedule_student.php?number=' . $index . '&start=' . $start_date . '&end=' . $end_date;
-            $response = file_get_contents($student_url);
+        foreach ($viableIndexes as $index) {
+            $studentUrl = 'https://plan.zut.edu.pl/schedule_student.php?number=' . $index . '&start=' . $this->startDate . '&end=' . $this->endDate;
+            $response = file_get_contents($studentUrl);
 
             // if the response is an empty json, skip the index
             if ($response === '[[]]') {
@@ -107,6 +109,10 @@ class ScraperService
 
     public function scrapeFaculties(): void
     {
+        if ($this->isDataEmpty(Subject::class)) {
+            return;
+        }
+
         $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty')->execute();
         $savedFaculties = ['IiJM', 'AOJ', 'SWFiS'];
         // Manual addition of faculties
@@ -150,6 +156,63 @@ class ScraperService
         }
     }
 
+    public function scrapeLessons(): void
+    {
+        if ($this->isDataEmpty(Teacher::class)) {
+            return;
+        }
+
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson')->execute();
+
+        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
+        $subjects = $this->entityManager->getRepository(Subject::class)->findAll();
+
+        $counter = 0;
+        foreach ($teachers as $teacher) {
+            $name = $teacher->getName();
+            $name = str_replace(' ', '%20', $name);
+            $url = 'https://plan.zut.edu.pl/schedule_student.php?teacher=' . $name . '&start=' . $this->startDate . '&end=' . $this->endDate;
+            $response = file_get_contents($url);
+            $fullData = json_decode($response, true);
+            foreach ($fullData as $data) {
+                if (empty($data['title'])) {
+                    continue;
+                }
+                $lesson = new Lesson();
+                $lesson->setName($data['title']);
+                $lesson->setFormLesson($data['lesson_form']);
+                $lesson->setHours($data['hours']);
+                $lesson->setStart(new \DateTime($data['start']));
+                $lesson->setFinish(new \DateTime($data['end']));
+                $lesson->setTeacher($teacher);
+                $room = $this->entityManager->getRepository(Room::class)->findOneBy(['name' => $data['room']]);
+                $lesson->setRoom($room);
+                // TODO: assign correct subject based on faculty, study-form etc
+                foreach ($subjects as $subject) {
+                    if (stripos($subject->getName(), $data['subject']) !== false) {
+                        $lesson->setSubject($subject);
+                        break;
+                    }
+                }
+                $group = $this->entityManager->getRepository(Group::class)->findOneBy(['name' => $data['group_name']]);
+                if (!$group && !empty($data['group_name'])) {
+                    $group = new Group();
+                    $group->setName($data['group_name']);
+                    $this->entityManager->persist($group);
+                }
+                $lesson->setStudentGroup($group);
+                $this->entityManager->persist($lesson);
+            }
+            $counter++;
+            if ($counter >= 10) {
+                break;
+            }
+        }
+
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+    }
+
     private function getDataInBatches(string $entity, int $batchSize = 100): \Generator
     {
         $offset = 0;
@@ -173,10 +236,10 @@ class ScraperService
 
     private function splitSubjectString(string $subject): array
     {
-        $result_array = substr($subject, strrpos($subject, '(') + 1, -1);
-        $result_array = explode(',', $result_array);
-        $result_array = array_map('trim', $result_array);
-        return $result_array;
+        $resultArray = substr($subject, strrpos($subject, '(') + 1, -1);
+        $resultArray = explode(',', $resultArray);
+        $resultArray = array_map('trim', $resultArray);
+        return $resultArray;
     }
 
 }

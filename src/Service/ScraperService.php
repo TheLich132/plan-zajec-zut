@@ -18,7 +18,7 @@ class ScraperService
 
     // TODO: set the start and end date dynamically
     private string $startDate = '2024-12-02';
-    private string $endDate = '2024-12-03';
+    private string $endDate = '2024-12-08';
 
     public function __construct(EntityManagerInterface $entityManager, RelationService $relationService)
     {
@@ -85,22 +85,41 @@ class ScraperService
 
     public function scrapeStudents(): void
     {
+        $lessons = $this->entityManager->getRepository(Lesson::class)->findAll();
         // TODO: make it not last forever
         $viableIndexes = range(50955, 50960);
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
+        $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
 
         foreach ($viableIndexes as $index) {
             $studentUrl = 'https://plan.zut.edu.pl/schedule_student.php?number=' . $index . '&start=' . $this->startDate . '&end=' . $this->endDate;
             $response = file_get_contents($studentUrl);
 
-            // if the response is an empty json, skip the index
             if ($response === '[[]]') {
                 continue;
             }
 
+            $data = json_decode($response, true);
+
             $student = new Student();
             $student->setIndexNumber($index);
+            foreach ($data as $item) {
+                if (empty($item['worker'])) {
+                    continue;
+                }
+                foreach ($lessons as $lesson) {
+                    // allign to this format 2024-12-03T10:15:00
+                    if ($lesson->getTeacher()->getName() === $item['worker']
+                        && $lesson->getStart()->format('Y-m-d\TH:i:s') === $item['start']
+                        && $lesson->getFinish()->format('Y-m-d\TH:i:s') === $item['end']
+                        && $lesson->getRoom() !== null
+                        && $lesson->getRoom()->getName() === $item['room']) {
+                        $student->addGroup($lesson->getStudentGroup());
+                    }
+                }
+            }
             $this->entityManager->persist($student);
+            echo 'Student ' . $index . ' scraped successfully.' . PHP_EOL;
         }
 
         $this->entityManager->flush();
@@ -164,8 +183,14 @@ class ScraperService
 
         $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson')->execute();
 
-        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
+//        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
         $subjects = $this->entityManager->getRepository(Subject::class)->findAll();
+        $karczmarczyk = new Teacher();
+        $karczmarczyk->setName('Karczmarczyk Artur');
+        $this->entityManager->persist($karczmarczyk);
+        $this->entityManager->flush();
+
+        $teachers = [$karczmarczyk];
 
         $counter = 0;
         foreach ($teachers as $teacher) {

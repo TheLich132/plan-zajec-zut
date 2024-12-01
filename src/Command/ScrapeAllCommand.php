@@ -38,11 +38,11 @@ class ScrapeAllCommand extends Command
         $this->scraperService->scrapeFaculties();
         $output->writeln('Faculties scraped successfully.');
 
-        $this->scraperService->scrapeStudents();
-        $output->writeln('Students scraped successfully.');
-
         $this->scraperService->scrapeLessons();
         $output->writeln('Lessons scraped successfully.');
+
+        $this->scraperService->scrapeStudents();
+        $output->writeln('Students scraped successfully.');
 
         return Command::SUCCESS;
     }

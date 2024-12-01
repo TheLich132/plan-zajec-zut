@@ -24,6 +24,8 @@ class ScrapeAllCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        ini_set('memory_limit', '512M');
+
         $this->scraperService->scrapeSubjects();
         $output->writeln('Subjects scraped successfully.');
 
@@ -32,6 +34,12 @@ class ScrapeAllCommand extends Command
 
         $this->scraperService->scrapeRooms();
         $output->writeln('Rooms scraped successfully.');
+
+        $this->scraperService->scrapeFaculties();
+        $output->writeln('Faculties scraped successfully.');
+
+        $this->scraperService->scrapeStudents();
+        $output->writeln('Students scraped successfully.');
 
         return Command::SUCCESS;
     }

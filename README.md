@@ -11,7 +11,6 @@ Po sklonowaniu repozytorium wykonaj następujące kroki (w katalogu repo):
 3. `npm run dev`
 
 4. `symfony server:start`
----
 
 ## W przypadku problemów
 
@@ -33,3 +32,4 @@ Po sklonowaniu repozytorium wykonaj następujące kroki (w katalogu repo):
 * Nauczyciele: `symfony console scrape:teacher`
 * Pokoje: `symfony console scrape:room`
 * Przedmioty: `symfony console scrape:subject`
+* Wydziały: `symfony console scrape:faculty`

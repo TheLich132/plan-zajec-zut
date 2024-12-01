@@ -6,7 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="b2e52ee8-ad02-49c9-93fe-c6eb4091ef5d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/styles/app.css" beforeDir="false" afterPath="$PROJECT_DIR$/assets/styles/app.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/assets/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/ZutScheduleIndex.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/ZutScheduleIndex.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -40,7 +42,7 @@
     &quot;accountId&quot;: &quot;9c8b53a0-2885-4d5f-bfa2-be907427c15c&quot;
   }
 }</component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/usr/bin/php8.2">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\Users\rados\Documents\PHP_8_3_13\php.exe">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/composer" />
       <path value="$PROJECT_DIR$/vendor/psr/link" />
@@ -209,8 +211,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-PS-243.21565.202" />
-        <option value="bundled-php-predefined-a98d8de5180a-5fbe0c30323e-com.jetbrains.php.sharedIndexes-PS-243.21565.202" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PS-242.23339.16" />
+        <option value="bundled-php-predefined-a98d8de5180a-90914f2295cb-com.jetbrains.php.sharedIndexes-PS-242.23339.16" />
       </set>
     </attachedChunks>
   </component>
@@ -228,6 +230,8 @@
       <workItem from="1732928406803" duration="157000" />
       <workItem from="1732928648666" duration="719000" />
       <workItem from="1733051653178" duration="632000" />
+      <workItem from="1733087704384" duration="23000" />
+      <workItem from="1733087761904" duration="869000" />
     </task>
     <servers />
   </component>

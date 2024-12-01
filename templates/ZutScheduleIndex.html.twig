@@ -8,10 +8,56 @@
 </head>
 <body>
 <div class="container">
-    <h1 class="text-primary">Witamy w ZUT Schedule!</h1>
-    <p class="text-success">Twoja aplikacja działa poprawnie!</p>
-    <button class="btn btn-primary">Kliknij mnie!</button>
+    <!-- Nagłówek -->
+    <header class="my-4">
+        <h1 class="text-center display-4">Lepszy plan ZUT</h1>
+    </header>
+
+    <!-- Główna zawartość -->
+    <div class="row">
+        <!-- Blok po lewej: Wyszukiwarka planu lekcji -->
+        <div class="col-md-6">
+            <h2>Wyszukiwarka planu lekcji</h2>
+            <form>
+                <div class="form-group">
+                    <label for="lecturer">Wykładowca</label>
+                    <input type="text" class="form-control" id="lecturer" name="lecturer" placeholder="Wpisz nazwisko wykładowcy">
+                </div>
+                <div class="form-group">
+                    <label for="room">Sala</label>
+                    <input type="text" class="form-control" id="room" name="room" placeholder="Wpisz numer sali">
+                </div>
+                <div class="form-group">
+                    <label for="subject">Przedmiot</label>
+                    <input type="text" class="form-control" id="subject" name="subject" placeholder="Wpisz nazwę przedmiotu">
+                </div>
+                <div class="form-group">
+                    <label for="group">Grupa</label>
+                    <input type="text" class="form-control" id="group" name="group" placeholder="Wpisz nazwę grupy">
+                </div>
+                <div class="form-group">
+                    <label for="albumNumber">Numer albumu</label>
+                    <input type="text" class="form-control" id="albumNumber" name="albumNumber" placeholder="Wpisz numer albumu">
+                </div>
+                <div class="mt-3">
+                    <button type="reset" class="btn btn-secondary">Wyczyść formularz</button>
+                    <button type="submit" class="btn btn-primary">Wyszukaj</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Blok po prawej: Sekcja na kalendarz -->
+        <div class="col-md-6">
+            <div class="calendar-placeholder mt-4 mt-md-0">
+                <h2>Kalendarz</h2>
+                <div class="border p-5 text-center">
+                    <p>Tu będzie kalendarz</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 <!-- Dodanie wygenerowanego pliku JS przez Webpack Encore -->
 {{ encore_entry_script_tags('app') }}
 </body>

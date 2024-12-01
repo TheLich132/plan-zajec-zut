@@ -21,3 +21,6 @@ Po sklonowaniu repozytorium wykonaj następujące kroki (w katalogu repo):
     - Node.js w wersji 14 lub nowszej.
     - Composer.
 3. Skorzystaj z pomocy ChatGPT, bo projekt działa.
+---
+
+Po zmianie css (assets/styls/app.css) wykonac `npm run dev` i Ctrl+F5 w przeglądarce

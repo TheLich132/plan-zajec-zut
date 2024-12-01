@@ -12,10 +12,12 @@ use Doctrine\ORM\EntityManagerInterface;
 class ScraperService
 {
     private EntityManagerInterface $entityManager;
+    private RelationService $relationService;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, RelationService $relationService)
     {
         $this->entityManager = $entityManager;
+        $this->relationService = $relationService;
     }
 
     public function isDataEmpty(string $entityClass): bool
@@ -106,7 +108,14 @@ class ScraperService
     public function scrapeFaculties(): void
     {
         $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty')->execute();
-        $savedFaculties = [];
+        $savedFaculties = ['IiJM', 'AOJ', 'SWFiS'];
+        // Manual addition of faculties
+        foreach ($savedFaculties as $facultyName) {
+            $faculty = new Faculty();
+            $faculty->setName($facultyName);
+            $this->entityManager->persist($faculty);
+        }
+
 
         foreach ($this->getDataInBatches("App\Entity\Subject") as $subjects) {
             foreach ($subjects as $subject) {
@@ -115,8 +124,16 @@ class ScraperService
                     continue;
                 }
 
+                if ($name === 'WBiIS') {
+                    $name = 'WBiIŚ';
+                }
+
+                if ($name === 'WTiICh') {
+                    $name = 'WTiICH';
+                }
+
                 // Check if the faculty already exists
-                $existingFaculty = $this->entityManager->getRepository(Faculty::class)->findOneBy(['Name' => $name]);
+                $existingFaculty = $this->entityManager->getRepository(Faculty::class)->findOneBy(['name' => $name]);
 
                 if (!$existingFaculty && !in_array($name, $savedFaculties)) {
                     $faculty = new Faculty();
@@ -128,6 +145,8 @@ class ScraperService
 
             $this->entityManager->flush();
             $this->entityManager->clear();
+
+            $this->relationService->createRelationFacultyRoom();
         }
     }
 

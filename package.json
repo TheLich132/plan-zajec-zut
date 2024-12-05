@@ -18,6 +18,10 @@
         "build": "encore production --progress"
     },
     "dependencies": {
+        "@fullcalendar/core": "^6.1.15",
+        "@fullcalendar/daygrid": "^6.1.15",
+        "@fullcalendar/interaction": "^6.1.15",
+        "@fullcalendar/timegrid": "^6.1.15",
         "bootstrap": "^5.3.3"
     }
 }

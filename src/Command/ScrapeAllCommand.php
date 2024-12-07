@@ -26,17 +26,14 @@ class ScrapeAllCommand extends Command
     {
         ini_set('memory_limit', '512M');
 
+        $this->scraperService->scrapeRooms();
+        $output->writeln('Rooms scraped successfully.');
+
         $this->scraperService->scrapeSubjects();
         $output->writeln('Subjects scraped successfully.');
 
         $this->scraperService->scrapeTeachers();
         $output->writeln('Teachers scraped successfully.');
-
-        $this->scraperService->scrapeRooms();
-        $output->writeln('Rooms scraped successfully.');
-
-        $this->scraperService->scrapeFaculties();
-        $output->writeln('Faculties scraped successfully.');
 
         $this->scraperService->scrapeLessons();
         $output->writeln('Lessons scraped successfully.');

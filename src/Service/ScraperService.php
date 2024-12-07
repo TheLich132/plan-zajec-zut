@@ -5,10 +5,12 @@ namespace App\Service;
 use App\Entity\Faculty;
 use App\Entity\Group;
 use App\Entity\Lesson;
+use App\Entity\Major;
 use App\Entity\Teacher;
 use App\Entity\Room;
 use App\Entity\Subject;
 use App\Entity\Student;
+use App\Enum\Degree;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ScraperService
@@ -18,7 +20,7 @@ class ScraperService
 
     // TODO: set the start and end date dynamically
     private string $startDate = '2024-12-02';
-    private string $endDate = '2024-12-08';
+    private string $endDate = '2024-12-09';
 
     public function __construct(EntityManagerInterface $entityManager, RelationService $relationService)
     {
@@ -81,7 +83,68 @@ class ScraperService
             Subject::class,
             'item'
         );
+
+        $subjects = $this->entityManager->getRepository(Subject::class)->findAll();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty')->execute();
+        $savedFaculties = ['IiJM', 'AOJ', 'SWFiS'];
+        // Manual addition of faculties
+        foreach ($savedFaculties as $facultyName) {
+            $faculty = new Faculty();
+            $faculty->setName($facultyName);
+            $this->entityManager->persist($faculty);
+        }
+        $this->entityManager->flush();
+
+        foreach ($subjects as $subject) {
+            $results = $this->splitSubjectString($subject->getName());
+            $faculty = null;
+            $major = null;
+
+            $facultyName = $this->unifyFacultyName($results[0]);
+            if (!empty($facultyName)) {
+                $existingFaculty = $this->entityManager->getRepository(Faculty::class)->findOneBy(['name' => $facultyName]);
+                if (!$existingFaculty && !in_array($facultyName, $savedFaculties)) {
+                    $faculty = new Faculty();
+                    $faculty->setName($facultyName);
+                    $this->entityManager->persist($faculty);
+                    $savedFaculties[] = $facultyName;
+                    $this->entityManager->flush();
+                } else {
+                    $faculty = $existingFaculty;
+                }
+            }
+
+            $majorName = $results[1];
+            if (!empty($majorName)) {
+                $major = $this->entityManager->getRepository(Major::class)->findOneBy(['name' => $majorName]);
+                if (!$major) {
+                    $major = new Major();
+                    $major->setName($majorName);
+                    $major->setFaculty($faculty);
+                    $this->entityManager->persist($major);
+                    $this->entityManager->flush();
+                }
+            }
+
+
+            $isStationary = match ($results[2]) {
+                'SS' => true,
+                'SN' => false,
+                default => null,
+            };
+            $degree = Degree::from($results[3]);
+
+            $subject->setFaculty($faculty);
+            $subject->setStationary($isStationary);
+            $subject->setDegree($degree);
+            $subject->setMajor($major);
+        }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $this->relationService->createRelationFacultyRoom();
     }
+
 
     public function scrapeStudents(): void
     {
@@ -108,72 +171,24 @@ class ScraperService
                     continue;
                 }
                 foreach ($lessons as $lesson) {
-                    // allign to this format 2024-12-03T10:15:00
                     if ($lesson->getTeacher()->getName() === $item['worker']
                         && $lesson->getStart()->format('Y-m-d\TH:i:s') === $item['start']
                         && $lesson->getFinish()->format('Y-m-d\TH:i:s') === $item['end']
                         && $lesson->getRoom() !== null
                         && $lesson->getRoom()->getName() === $item['room']) {
                         $student->addGroup($lesson->getStudentGroup());
+                        $student->addLesson($lesson);
                     }
                 }
             }
             $this->entityManager->persist($student);
-            echo 'Student ' . $index . ' scraped successfully.' . PHP_EOL;
+            echo 'Student ' . $index . ' scraped' . PHP_EOL;
         }
 
         $this->entityManager->flush();
         $this->entityManager->clear();
     }
 
-    public function scrapeFaculties(): void
-    {
-        if ($this->isDataEmpty(Subject::class)) {
-            return;
-        }
-
-        $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty')->execute();
-        $savedFaculties = ['IiJM', 'AOJ', 'SWFiS'];
-        // Manual addition of faculties
-        foreach ($savedFaculties as $facultyName) {
-            $faculty = new Faculty();
-            $faculty->setName($facultyName);
-            $this->entityManager->persist($faculty);
-        }
-
-
-        foreach ($this->getDataInBatches("App\Entity\Subject") as $subjects) {
-            foreach ($subjects as $subject) {
-                $name = $this->splitSubjectString($subject->getName())[0];
-                if (empty($name)) {
-                    continue;
-                }
-
-                if ($name === 'WBiIS') {
-                    $name = 'WBiIŚ';
-                }
-
-                if ($name === 'WTiICh') {
-                    $name = 'WTiICH';
-                }
-
-                // Check if the faculty already exists
-                $existingFaculty = $this->entityManager->getRepository(Faculty::class)->findOneBy(['name' => $name]);
-
-                if (!$existingFaculty && !in_array($name, $savedFaculties)) {
-                    $faculty = new Faculty();
-                    $faculty->setName($name);
-                    $this->entityManager->persist($faculty);
-                    $savedFaculties[] = $name;
-                }
-            }
-
-            $this->entityManager->flush();
-            $this->entityManager->clear();
-
-            $this->relationService->createRelationFacultyRoom();
-        }
-    }
 
     public function scrapeLessons(): void
     {
@@ -212,20 +227,26 @@ class ScraperService
                 $lesson->setTeacher($teacher);
                 $room = $this->entityManager->getRepository(Room::class)->findOneBy(['name' => $data['room']]);
                 $lesson->setRoom($room);
-                // TODO: assign correct subject based on faculty, study-form etc
+                $isStationary = $data['tok_name'] ? $this->determineStationary($data['tok_name']) : null;
                 foreach ($subjects as $subject) {
-                    if (stripos($subject->getName(), $data['subject']) !== false) {
+                    if (stripos($subject->getName(), $data['subject']) !== false
+                        && $subject->isStationary() === $isStationary
+                        && $subject->getFaculty()->getName() === $room->getFaculty()->getName()) {
                         $lesson->setSubject($subject);
                         break;
                     }
                 }
-                $group = $this->entityManager->getRepository(Group::class)->findOneBy(['name' => $data['group_name']]);
-                if (!$group && !empty($data['group_name'])) {
-                    $group = new Group();
-                    $group->setName($data['group_name']);
-                    $this->entityManager->persist($group);
+                // Check if the group already exists
+                if (!empty($data['group_name'])) {
+                    $group = $this->entityManager->getRepository(Group::class)->findOneBy(['name' => $data['group_name']]);
+                    if (!$group) {
+                        $group = new Group();
+                        $group->setName($data['group_name']);
+                        $this->entityManager->persist($group);
+                        $this->entityManager->flush();
+                    }
+                    $lesson->setStudentGroup($group);
                 }
-                $lesson->setStudentGroup($group);
                 $this->entityManager->persist($lesson);
             }
             $counter++;
@@ -266,5 +287,36 @@ class ScraperService
         $resultArray = array_map('trim', $resultArray);
         return $resultArray;
     }
+
+    private function unifyFacultyName(string $name): string
+    {
+        if ($name === 'WBiIS') {
+            $name = 'WBiIŚ';
+        }
+        if ($name === 'WTiICh') {
+            $name = 'WTiICH';
+        }
+        return $name;
+    }
+
+    private function determineStationary(string $tokName): bool
+    {
+        $parts = explode('_', $tokName);
+        return isset($parts[2]) && strtoupper($parts[2]) === 'S';
+    }
+
+    public function deleteAll(): void
+    {
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Group')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Room')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Teacher')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Subject')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty')->execute();
+        $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
+    }
+
+
 
 }

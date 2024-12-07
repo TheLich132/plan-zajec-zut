@@ -3,14 +3,14 @@
 namespace App\Entity;
 
 use App\Entity\Traits\Timestampable;
-use App\Repository\RoomRepository;
+use App\Repository\MajorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: RoomRepository::class)]
+#[ORM\Entity(repositoryClass: MajorRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-class Room
+class Major
 {
     use Timestampable;
     #[ORM\Id]
@@ -21,19 +21,18 @@ class Room
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\ManyToOne(inversedBy: 'rooms')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(inversedBy: 'majors')]
     private ?Faculty $faculty = null;
 
     /**
-     * @var Collection<int, Lesson>
+     * @var Collection<int, Subject>
      */
-    #[ORM\OneToMany(targetEntity: Lesson::class, mappedBy: 'room')]
-    private Collection $lessons;
+    #[ORM\OneToMany(targetEntity: Subject::class, mappedBy: 'major')]
+    private Collection $subjects;
 
     public function __construct()
     {
-        $this->lessons = new ArrayCollection();
+        $this->subjects = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -66,29 +65,29 @@ class Room
     }
 
     /**
-     * @return Collection<int, Lesson>
+     * @return Collection<int, Subject>
      */
-    public function getLessons(): Collection
+    public function getSubjects(): Collection
     {
-        return $this->lessons;
+        return $this->subjects;
     }
 
-    public function addLesson(Lesson $lesson): static
+    public function addSubject(Subject $subject): static
     {
-        if (!$this->lessons->contains($lesson)) {
-            $this->lessons->add($lesson);
-            $lesson->setRoom($this);
+        if (!$this->subjects->contains($subject)) {
+            $this->subjects->add($subject);
+            $subject->setMajor($this);
         }
 
         return $this;
     }
 
-    public function removeLesson(Lesson $lesson): static
+    public function removeSubject(Subject $subject): static
     {
-        if ($this->lessons->removeElement($lesson)) {
+        if ($this->subjects->removeElement($subject)) {
             // set the owning side to null (unless already changed)
-            if ($lesson->getRoom() === $this) {
-                $lesson->setRoom(null);
+            if ($subject->getMajor() === $this) {
+                $subject->setMajor(null);
             }
         }
 

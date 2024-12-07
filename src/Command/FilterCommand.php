@@ -12,21 +12,24 @@ class FilterCommand extends Command
 {
     private FilterService $filterService;
 
-    // Inject the service via the constructor
     public function __construct(FilterService $filterService)
     {
         parent::__construct();
         $this->filterService = $filterService;
     }
 
-    protected function configure() : void
+    protected function configure(): void
     {
         $this->setName('filter')
             ->setDescription('Filters lessons based on provided criteria')
             ->addArgument('room', InputArgument::OPTIONAL, 'Room name')
             ->addArgument('teacher', InputArgument::OPTIONAL, 'Teacher name')
             ->addArgument('group', InputArgument::OPTIONAL, 'Group name')
-            ->addArgument('subject', InputArgument::OPTIONAL, 'Subject name');
+            ->addArgument('subject', InputArgument::OPTIONAL, 'Subject name')
+            ->addArgument('student', InputArgument::OPTIONAL, 'Student index')
+            ->addArgument('faculty', InputArgument::OPTIONAL, 'Faculty name')
+            ->addArgument('isStationary', InputArgument::OPTIONAL, 'Is stationary')
+            ->addArgument('form', InputArgument::OPTIONAL, 'Form name');
 
     }
 
@@ -36,12 +39,39 @@ class FilterCommand extends Command
         $teacher = $input->getArgument('teacher') ?? '';
         $group = $input->getArgument('group') ?? '';
         $subject = $input->getArgument('subject') ?? '';
-        // call the service to filter the lessons
-        $lessons = $this->filterService->filter(teacher: $teacher, room: $room, group: $group, subject: $subject);
+        $student = $input->getArgument('student') ?? '';
+        $faculty = $input->getArgument('faculty') ?? '';
+        $isStationary = $input->getArgument('isStationary') === 't';
+        $form = $input->getArgument('form') ?? '';
+        $start = new \DateTime('2024-12-04 00:00:00');
+        $finish = new \DateTime('2024-12-06 23:59:59');
 
-        $output->writeln("INPUT: Room: $room, Teacher: $teacher, Group: $group, Subject: $subject");
+        $lessons = $this->filterService->filter(
+            faculty: $faculty,
+            teacher: $teacher,
+            room: $room,
+            subject: $subject,
+            group: $group,
+            student: $student,
+            isStationary: $isStationary,
+            form: $form,
+            start: $start,
+            finish: $finish);
 
-        // output the lessons
+        $output->writeln(
+            "
+            Faculty: $faculty,
+            Teacher: $teacher,
+            Room: $room,
+            Subject: $subject,
+            Group: $group,
+            Student: $student,
+            Is stationary: " . ($isStationary ? 'true' : 'false') . ",
+            Form: $form,
+            Start: " . $start->format('Y-m-d H:i:s') . ",
+            Finish: " . $finish->format('Y-m-d H:i:s'));
+
+
         foreach ($lessons as $lesson) {
             $output->writeln($lesson->getName());
         }

@@ -20,8 +20,9 @@ class Lesson
     #[ORM\Column(length: 255)]
     private ?string $formLesson = null;
 
-    #[ORM\Column]
-    private ?int $hours = null;
+    #[ORM\Column(nullable: true)]
+    private ?float $hours = null;
+
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $start = null;
@@ -44,6 +45,7 @@ class Lesson
     #[ORM\ManyToOne(inversedBy: 'lessons')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Group $studentGroup = null;
+
 
     public function getId(): ?int
     {

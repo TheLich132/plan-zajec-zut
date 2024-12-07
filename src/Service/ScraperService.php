@@ -171,7 +171,6 @@ class ScraperService
                     continue;
                 }
                 foreach ($lessons as $lesson) {
-                    // allign to this format 2024-12-03T10:15:00
                     if ($lesson->getTeacher()->getName() === $item['worker']
                         && $lesson->getStart()->format('Y-m-d\TH:i:s') === $item['start']
                         && $lesson->getFinish()->format('Y-m-d\TH:i:s') === $item['end']
@@ -225,12 +224,13 @@ class ScraperService
                 $lesson->setStart(new \DateTime($data['start']));
                 $lesson->setFinish(new \DateTime($data['end']));
                 $lesson->setTeacher($teacher);
-//                $isStationary = $this->determineStationary($data['tok_name']);
                 $room = $this->entityManager->getRepository(Room::class)->findOneBy(['name' => $data['room']]);
                 $lesson->setRoom($room);
-                // TODO: assign correct subject based on faculty, study-form etc
+                $isStationary = $data['tok_name'] ? $this->determineStationary($data['tok_name']) : null;
                 foreach ($subjects as $subject) {
-                    if (stripos($subject->getName(), $data['subject']) !== false) {
+                    if (stripos($subject->getName(), $data['subject']) !== false
+                        && $subject->isStationary() === $isStationary
+                        && $subject->getFaculty()->getName() === $room->getFaculty()->getName()) {
                         $lesson->setSubject($subject);
                         break;
                     }

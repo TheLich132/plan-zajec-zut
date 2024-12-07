@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Traits\Timestampable;
 use App\Enum\Degree;
 use App\Repository\SubjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,8 +10,10 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SubjectRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Subject
 {
+    use Timestampable;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

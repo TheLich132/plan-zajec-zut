@@ -43,8 +43,8 @@ class FilterCommand extends Command
         $faculty = $input->getArgument('faculty') ?? '';
         $isStationary = $input->getArgument('isStationary') === 't';
         $form = $input->getArgument('form') ?? '';
-        $start = new \DateTime('2024-12-04 00:00:00');
-        $finish = new \DateTime('2024-12-06 23:59:59');
+        $start = new \DateTime('2024-12-02 00:00:00');
+        $finish = new \DateTime('2024-12-08 23:59:59');
 
         $lessons = $this->filterService->filter(
             faculty: $faculty,

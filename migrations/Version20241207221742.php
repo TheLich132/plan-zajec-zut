@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20241206190404 extends AbstractMigration
+final class Version20241207221742 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -26,7 +26,7 @@ final class Version20241206190404 extends AbstractMigration
         $this->addSql('CREATE TABLE group_student (group_id INTEGER NOT NULL, student_id INTEGER NOT NULL, PRIMARY KEY(group_id, student_id), CONSTRAINT FK_3123FB3FFE54D947 FOREIGN KEY (group_id) REFERENCES "group" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_3123FB3FCB944F1A FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE)');
         $this->addSql('CREATE INDEX IDX_3123FB3FFE54D947 ON group_student (group_id)');
         $this->addSql('CREATE INDEX IDX_3123FB3FCB944F1A ON group_student (student_id)');
-        $this->addSql('CREATE TABLE lesson (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, subject_id INTEGER DEFAULT NULL, teacher_id INTEGER DEFAULT NULL, room_id INTEGER DEFAULT NULL, student_group_id INTEGER DEFAULT NULL, name VARCHAR(255) NOT NULL, form_lesson VARCHAR(255), hours REAL, start DATETIME, finish DATETIME, CONSTRAINT FK_F87474F323EDC87 FOREIGN KEY (subject_id) REFERENCES subject (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_F87474F341807E1D FOREIGN KEY (teacher_id) REFERENCES teacher (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_F87474F354177093 FOREIGN KEY (room_id) REFERENCES room (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_F87474F34DDF95DC FOREIGN KEY (student_group_id) REFERENCES "group" (id) NOT DEFERRABLE INITIALLY IMMEDIATE)');
+        $this->addSql('CREATE TABLE lesson (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, subject_id INTEGER DEFAULT NULL, teacher_id INTEGER DEFAULT NULL, room_id INTEGER DEFAULT NULL, student_group_id INTEGER DEFAULT NULL, name VARCHAR(255) NOT NULL, form_lesson VARCHAR(255) DEFAULT NULL, hours DOUBLE PRECISION DEFAULT NULL, start DATETIME NOT NULL, finish DATETIME NOT NULL, CONSTRAINT FK_F87474F323EDC87 FOREIGN KEY (subject_id) REFERENCES subject (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_F87474F341807E1D FOREIGN KEY (teacher_id) REFERENCES teacher (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_F87474F354177093 FOREIGN KEY (room_id) REFERENCES room (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_F87474F34DDF95DC FOREIGN KEY (student_group_id) REFERENCES "group" (id) NOT DEFERRABLE INITIALLY IMMEDIATE)');
         $this->addSql('CREATE INDEX IDX_F87474F323EDC87 ON lesson (subject_id)');
         $this->addSql('CREATE INDEX IDX_F87474F341807E1D ON lesson (teacher_id)');
         $this->addSql('CREATE INDEX IDX_F87474F354177093 ON lesson (room_id)');
@@ -36,6 +36,9 @@ final class Version20241206190404 extends AbstractMigration
         $this->addSql('CREATE TABLE room (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, faculty_id INTEGER DEFAULT NULL, name VARCHAR(255) NOT NULL, CONSTRAINT FK_729F519B680CAB68 FOREIGN KEY (faculty_id) REFERENCES faculty (id) NOT DEFERRABLE INITIALLY IMMEDIATE)');
         $this->addSql('CREATE INDEX IDX_729F519B680CAB68 ON room (faculty_id)');
         $this->addSql('CREATE TABLE student (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, index_number INTEGER NOT NULL)');
+        $this->addSql('CREATE TABLE student_lesson (student_id INTEGER NOT NULL, lesson_id INTEGER NOT NULL, PRIMARY KEY(student_id, lesson_id), CONSTRAINT FK_7642AC73CB944F1A FOREIGN KEY (student_id) REFERENCES student (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_7642AC73CDF80196 FOREIGN KEY (lesson_id) REFERENCES lesson (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE)');
+        $this->addSql('CREATE INDEX IDX_7642AC73CB944F1A ON student_lesson (student_id)');
+        $this->addSql('CREATE INDEX IDX_7642AC73CDF80196 ON student_lesson (lesson_id)');
         $this->addSql('CREATE TABLE subject (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, major_id INTEGER DEFAULT NULL, faculty_id INTEGER DEFAULT NULL, name VARCHAR(255) NOT NULL, degree VARCHAR(255) DEFAULT NULL, is_stationary BOOLEAN DEFAULT NULL, CONSTRAINT FK_FBCE3E7AE93695C7 FOREIGN KEY (major_id) REFERENCES major (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_FBCE3E7A680CAB68 FOREIGN KEY (faculty_id) REFERENCES faculty (id) NOT DEFERRABLE INITIALLY IMMEDIATE)');
         $this->addSql('CREATE INDEX IDX_FBCE3E7AE93695C7 ON subject (major_id)');
         $this->addSql('CREATE INDEX IDX_FBCE3E7A680CAB68 ON subject (faculty_id)');
@@ -59,6 +62,7 @@ final class Version20241206190404 extends AbstractMigration
         $this->addSql('DROP TABLE major');
         $this->addSql('DROP TABLE room');
         $this->addSql('DROP TABLE student');
+        $this->addSql('DROP TABLE student_lesson');
         $this->addSql('DROP TABLE subject');
         $this->addSql('DROP TABLE teacher');
         $this->addSql('DROP TABLE messenger_messages');

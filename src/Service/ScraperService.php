@@ -20,7 +20,7 @@ class ScraperService
 
     // TODO: set the start and end date dynamically
     private string $startDate = '2024-12-02';
-    private string $endDate = '2024-12-08';
+    private string $endDate = '2024-12-09';
 
     public function __construct(EntityManagerInterface $entityManager, RelationService $relationService)
     {
@@ -177,6 +177,7 @@ class ScraperService
                         && $lesson->getRoom() !== null
                         && $lesson->getRoom()->getName() === $item['room']) {
                         $student->addGroup($lesson->getStudentGroup());
+                        $student->addLesson($lesson);
                     }
                 }
             }
@@ -315,5 +316,7 @@ class ScraperService
         $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
     }
+
+
 
 }

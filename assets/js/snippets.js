@@ -49,3 +49,13 @@ document.addEventListener('DOMContentLoaded', function () {
         switchForm('first');
     });
 });
+
+// Event listener for color inputs
+const colorInputs = document.querySelectorAll('input[type="color"]');
+
+colorInputs.forEach((input) => {
+    input.addEventListener('change', (event) => {
+        const newValue = event.target.value;
+        console.log(`Color of ${event.target.name} changed to: ${newValue}`);
+    });
+});

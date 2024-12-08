@@ -40,3 +40,10 @@
     height: 100%;
     overflow: hidden;
 }
+
+.colorPickerForm input[type="color"] {
+    width: 25px;
+    height: 25px;
+    border: none;
+    cursor: pointer;
+}

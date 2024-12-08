@@ -15,6 +15,7 @@
     <header class="my-4">
         <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu" aria-controls="menu">Menu</button>
         <h1 class="text-center display-4">Lepszy plan ZUT</h1>
+        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#settings" aria-controls="settings">Ustawienia</button>
     </header>
 
     <!-- Lewy pasek boczny offcanvas: Menu -->
@@ -147,6 +148,43 @@
 
             <div class="position-absolute bottom-0 start-0 p-3">
                 <button class="btn btn-secondary" onclick="document.body.classList.toggle('dark-theme');">🌙</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prawy pasek boczny offcanvas: Ustawienia -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="settings" aria-labelledby="settingsLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="settingsLabel">Ustawienia wyświetlania planu</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="accordion" id="accordionExample">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-controls="collapseOne">
+                            Edytuj kolor kafelków
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+                            <form class="colorPickerForm">
+                                <div class="form-group mb-3 d-flex align-items-center">
+                                    <input type="color" id="colorLaboratorium" name="colorLaboratorium" value="#00A419" class="me-2">
+                                    <label for="colorLaboratorium">laboratorium</label>
+                                </div>
+                                <div class="form-group mb-3 d-flex align-items-center">
+                                    <input type="color" id="colorWyklad" name="colorWyklad" value="#A100FF" class="me-2">
+                                    <label for="colorWyklad">wykład</label>
+                                </div>
+                                <div class="form-group mb-3 d-flex align-items-center">
+                                    <input type="color" id="colorSeminarium" name="colorSeminarium" value="#00AED4" class="me-2">
+                                    <label for="colorSeminarium">seminarium</label>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

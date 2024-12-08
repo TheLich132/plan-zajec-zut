@@ -16,16 +16,17 @@ use Doctrine\ORM\EntityManagerInterface;
 class ScraperService
 {
     private EntityManagerInterface $entityManager;
-    private RelationService $relationService;
+
+    private FilterService $filterService;
 
     // TODO: set the start and end date dynamically
     private string $startDate = '2024-12-02';
     private string $endDate = '2024-12-09';
 
-    public function __construct(EntityManagerInterface $entityManager, RelationService $relationService)
+    public function __construct(EntityManagerInterface $entityManager, FilterService $filterService)
     {
         $this->entityManager = $entityManager;
-        $this->relationService = $relationService;
+        $this->filterService = $filterService;
     }
 
     public function isDataEmpty(string $entityClass): bool
@@ -142,7 +143,7 @@ class ScraperService
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->relationService->createRelationFacultyRoom();
+        $this->createRelationFacultyRoom();
     }
 
 
@@ -150,7 +151,7 @@ class ScraperService
     {
         $lessons = $this->entityManager->getRepository(Lesson::class)->findAll();
         // TODO: make it not last forever
-        $viableIndexes = range(50955, 50960);
+        $viableIndexes = range(50955, 51160);
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
 
@@ -200,12 +201,10 @@ class ScraperService
 
 //        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
         $subjects = $this->entityManager->getRepository(Subject::class)->findAll();
-        $karczmarczyk = new Teacher();
-        $karczmarczyk->setName('Karczmarczyk Artur');
-        $this->entityManager->persist($karczmarczyk);
-        $this->entityManager->flush();
 
-        $teachers = [$karczmarczyk];
+        $suggestedNames = $this->filterService->suggest(Teacher::class, 'Kar');
+        $suggestedTeachers = $this->entityManager->getRepository(Teacher::class)->findBy(['name' => $suggestedNames]);
+        $teachers = $suggestedTeachers;
 
         $counter = 0;
         foreach ($teachers as $teacher) {
@@ -259,27 +258,6 @@ class ScraperService
         $this->entityManager->clear();
     }
 
-    private function getDataInBatches(string $entity, int $batchSize = 100): \Generator
-    {
-        $offset = 0;
-
-        while (true) {
-            $query = $this->entityManager->createQuery('SELECT s FROM ' . $entity . ' s')
-                ->setFirstResult($offset)
-                ->setMaxResults($batchSize);
-
-            $data = $query->getResult();
-
-            if (count($data) === 0) {
-                break;
-            }
-
-            yield $data;
-
-            $offset += $batchSize;
-        }
-    }
-
     private function splitSubjectString(string $subject): array
     {
         $resultArray = substr($subject, strrpos($subject, '(') + 1, -1);
@@ -305,6 +283,25 @@ class ScraperService
         return isset($parts[2]) && strtoupper($parts[2]) === 'S';
     }
 
+    private function createRelationFacultyRoom(): void
+    {
+        $faculties = $this->entityManager->getRepository(Faculty::class)->findAll();
+        $rooms = $this->entityManager->getRepository(Room::class)->findAll();
+
+        foreach ($rooms as $room) {
+            $room->setFaculty(null);
+            foreach ($faculties as $faculty) {
+                if (preg_match('/(?<![a-zA-Z])' . preg_quote($faculty->getName(), '/') . '(?![a-zA-Z])/', $room->getName())) {
+                    $room->setFaculty($faculty);
+                    break;
+                }
+            }
+        }
+
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+    }
+
     public function deleteAll(): void
     {
         $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson')->execute();
@@ -314,9 +311,11 @@ class ScraperService
         $this->entityManager->createQuery('DELETE FROM App\Entity\Teacher')->execute();
         $this->entityManager->createQuery('DELETE FROM App\Entity\Subject')->execute();
         $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Major')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
-    }
+        $this->entityManager->getConnection()->executeStatement('DELETE FROM student_lesson');
 
+    }
 
 
 }

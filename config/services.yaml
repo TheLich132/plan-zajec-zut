@@ -25,3 +25,7 @@ services:
     App\Service\ScraperService:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
+
+    App\Service\SemesterService:
+        arguments:
+            $configPath: '%kernel.project_dir%/config/semester.yaml'

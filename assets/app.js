@@ -21,10 +21,35 @@ import plLocale from '@fullcalendar/core/locales/pl';
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar'); // Szuka elementu z id=calendar
 
-    if (calendarEl) {
-        const calendar = new Calendar(calendarEl, {
+    let calendar;
+
+    function fetchAndRenderEvent(){
+        // Pobieranie wartości z fromularzy
+        const lecturer = document.getElementById('lecturer').value;
+        const room = document.getElementById('room').value;
+        const subject = document.getElementById('subject').value;
+        const group = document.getElementById('group').value;
+        const albumNumber = document.getElementById('albumNumber').value;
+
+
+        const queryParams = new URLSearchParams({
+           lecturer,
+           room,
+           subject,
+           group,
+           albumNumber,
+        });
+
+        const eventsUrl = `/api/lessons?${queryParams.toString()}`;
+
+
+        if(calendar){
+            calendar.destroy();
+        }
+
+        calendar = new Calendar(calendarEl, {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-            initialView: 'timeGridWeek', // Domyślny
+            initialView: 'timeGridWeek',
             locale: plLocale,
             headerToolbar: {
                 left: 'prev,next today',
@@ -34,6 +59,8 @@ document.addEventListener('DOMContentLoaded', function () {
             views: {
                 timeGridWeek:{ // Usuwa "cały dzień"
                     allDaySlot: false,
+                    slotMinTime:'07:00:00',
+                    slotMaxTime:'21:00:00',
                 },
                 timeGridDay:{
                     allDaySlot: false,
@@ -44,14 +71,48 @@ document.addEventListener('DOMContentLoaded', function () {
                     buttonText: 'Semestr',
                 },
             },
-            editable: false,
-            events: [
-                { title: 'Początek semestru', start: '2024-10-01' },
-                { title: 'Sesja', start: '2025-02-01', end: '2025-02-15' },
-            ],
-            height:500,
-        });
+            events: eventsUrl,
+            eventDataTransform:function (eventData){
+                switch (eventData.type){
+                    case 'wykład':
+                        eventData.backgroundColor = '#009999'
+                        break;
+                    case 'laboratorium':
+                        eventData.backgroundColor = '#009900'
+                        break;
+                    case 'audytoryjne':
+                        eventData.backgroundColor = '#3399ff'
+                        break;
+                    case 'projekt':
+                        eventData.backgroundColor = '#994c00'
+                        break;
+                    case 'seminarium':
+                        eventData.backgroundColor = '#7f0077'
+                        break;
+                    case 'odwołane':
+                        eventData.backgroundColor = '#a0a0a0'
+                        break;
 
-        calendar.render(); // Wyświetla kalendarz
+                }
+                return eventData;
+            },
+            eventDidMount: function (info){
+                const tooltip = new bootstrap.Tooltip(info.el, {
+                    title: info.event.extendedProps.description,
+                    placement: 'top',
+                    trigger: 'hover',
+                });
+            },
+            height : 600,
+        })
+        calendar.render();
     }
+
+    fetchAndRenderEvent();
+
+    const searchButton = document.querySelector('form button[type="submit"]');
+    searchButton.addEventListener('click',function (e){
+       e.preventDefault();
+       fetchAndRenderEvent();
+    });
 });

@@ -23,25 +23,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let calendar;
 
+    // Ustawianie ekranu startowego z linku
+    function setFormValuesFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Ustawianie wartości dla pierwszego formularza
+        document.querySelector('#firstScheduleForm #lecturer').value = urlParams.get('lecturer1') || '';
+        document.querySelector('#firstScheduleForm #room').value = urlParams.get('room1') || '';
+        document.querySelector('#firstScheduleForm #subject').value = urlParams.get('subject1') || '';
+        document.querySelector('#firstScheduleForm #group').value = urlParams.get('group1') || '';
+        document.querySelector('#firstScheduleForm #albumNumber').value = urlParams.get('albumNumber1') || '';
+
+        // Ustawianie wartości dla drugiego formularza
+        document.querySelector('#secondScheduleForm #lecturer').value = urlParams.get('lecturer2') || '';
+        document.querySelector('#secondScheduleForm #room').value = urlParams.get('room2') || '';
+        document.querySelector('#secondScheduleForm #subject').value = urlParams.get('subject2') || '';
+        document.querySelector('#secondScheduleForm #group').value = urlParams.get('group2') || '';
+        document.querySelector('#secondScheduleForm #albumNumber').value = urlParams.get('albumNumber2') || '';
+    }
+
     function fetchAndRenderEvent(){
         // Pobieranie wartości z fromularzy
-        const lecturer = document.getElementById('lecturer').value;
-        const room = document.getElementById('room').value;
-        const subject = document.getElementById('subject').value;
-        const group = document.getElementById('group').value;
-        const albumNumber = document.getElementById('albumNumber').value;
+        const lecturer1 = document.querySelector('#firstScheduleForm #lecturer').value;
+        const room1 = document.querySelector('#firstScheduleForm #room').value;
+        const subject1 = document.querySelector('#firstScheduleForm #subject').value;
+        const group1 = document.querySelector('#firstScheduleForm #group').value;
+        const albumNumber1 = document.querySelector('#firstScheduleForm #albumNumber').value;
 
+        const lecturer2 = document.querySelector('#secondScheduleForm #lecturer').value;
+        const room2 = document.querySelector('#secondScheduleForm #room').value;
+        const subject2 = document.querySelector('#secondScheduleForm #subject').value;
+        const group2 = document.querySelector('#secondScheduleForm #group').value;
+        const albumNumber2 = document.querySelector('#secondScheduleForm #albumNumber').value;
 
         const queryParams = new URLSearchParams({
-           lecturer,
-           room,
-           subject,
-           group,
-           albumNumber,
+            lecturer1,
+            room1,
+            subject1,
+            group1,
+            albumNumber1,
+            lecturer2,
+            room2,
+            subject2,
+            group2,
+            albumNumber2,
         });
 
         const eventsUrl = `/api/lessons?${queryParams.toString()}`;
-
+        window.history.replaceState(null, '', `?${queryParams.toString()}`);
 
         if(calendar){
             calendar.destroy();
@@ -94,8 +123,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
 
                 }
+                // kolor ramki dla planu 2
+                if (eventData.plan === '2') {
+                    eventData.borderColor = '#ff0000';
+                    eventData.borderWidth = '5px';
+                }
                 return eventData;
             },
+
             eventDidMount: function (info){
                 const tooltip = new bootstrap.Tooltip(info.el, {
                     title: info.event.extendedProps.description,
@@ -108,11 +143,15 @@ document.addEventListener('DOMContentLoaded', function () {
         calendar.render();
     }
 
+    setFormValuesFromURL();
     fetchAndRenderEvent();
 
-    const searchButton = document.querySelector('form button[type="submit"]');
-    searchButton.addEventListener('click',function (e){
-       e.preventDefault();
-       fetchAndRenderEvent();
+    const searchButtons = document.querySelectorAll('form button[type="submit"]');
+
+    searchButtons.forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            fetchAndRenderEvent();
+        });
     });
 });

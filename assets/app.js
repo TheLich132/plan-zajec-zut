@@ -41,7 +41,28 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelector('#secondScheduleForm #group').value = urlParams.get('group2') || '';
         document.querySelector('#secondScheduleForm #albumNumber').value = urlParams.get('albumNumber2') || '';
     }
+    function getSemesterViewConfig() {
+        const today = new Date();
+        const year = today.getFullYear();
 
+        // Semestr zimowy
+        if (today.getMonth() >= 9 || today.getMonth() <= 1) {
+            return {
+                title: 'Semestr',
+                start: new Date(`${year}-10-01`),
+                end: new Date(`${year + 1}-02-28`),
+                duration: { months: 5 }
+            };
+        } else {
+            // Semestr letni
+            return {
+                title: 'Semestr',
+                start: new Date(`${year}-03-01`),
+                end: new Date(`${year}-09-30`),
+                duration: { months: 7 }
+            };
+        }
+    }
     function fetchAndRenderEvent(){
         // Pobieranie wartości z fromularzy
         const lecturer1 = document.querySelector('#firstScheduleForm #lecturer').value;
@@ -55,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const subject2 = document.querySelector('#secondScheduleForm #subject').value;
         const group2 = document.querySelector('#secondScheduleForm #group').value;
         const albumNumber2 = document.querySelector('#secondScheduleForm #albumNumber').value;
+
 
         const queryParams = new URLSearchParams({
             lecturer1,
@@ -76,6 +98,8 @@ document.addEventListener('DOMContentLoaded', function () {
             calendar.destroy();
         }
 
+        const semesterConfig = getSemesterViewConfig();
+
         calendar = new Calendar(calendarEl, {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
             initialView: 'timeGridWeek',
@@ -94,10 +118,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 timeGridDay:{
                     allDaySlot: false,
                 },
-                semesterView: { // Roboczo: widok semestralny
+                semesterView: { // Widok semestralny
                     type: 'dayGrid',
-                    duration: { months: 4 },
-                    buttonText: 'Semestr',
+                    duration: semesterConfig.duration,
+                    buttonText: semesterConfig.title,
+                    visibleRange: {
+                        start: semesterConfig.start,
+                        end: semesterConfig.end,
+                    },
                 },
             },
             events: eventsUrl,
@@ -121,7 +149,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     case 'odwołane':
                         eventData.backgroundColor = '#a0a0a0'
                         break;
-
                 }
                 // kolor ramki dla planu 2
                 if (eventData.plan === '2') {

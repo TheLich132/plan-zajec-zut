@@ -87,18 +87,27 @@ class LessonController extends AbstractController
         };
 
         // Pobieranie wyników dla obu planów
+
+
+        // Łączenie wyników z obu planów
+
+
+        $allFiltersEmpty1 =
+            !$lecturer1 && !$room1 && !$subject1 && !$group1 && !$albumNumber1;
+        $allFiltersEmpty2 =
+            !$lecturer2 && !$room2 && !$subject2 && !$group2 && !$albumNumber2;
+
         $results1 = $buildQuery($lecturer1, $room1, $subject1, $group1, $albumNumber1, '1');
         $results2 = $buildQuery($lecturer2, $room2, $subject2, $group2, $albumNumber2, '2');
 
-        // Łączenie wyników z obu planów
-        $combinedResults = array_merge(array_filter($results1), array_filter($results2));
-
-        $allFiltersEmpty =
-            !$lecturer1 && !$room1 && !$subject1 && !$group1 && !$albumNumber1 &&
-            !$lecturer2 && !$room2 && !$subject2 && !$group2 && !$albumNumber2;
-
-        if ($allFiltersEmpty) {
+        if ($allFiltersEmpty1 && $allFiltersEmpty2) {
             return $this->json([]);
+        }
+        elseif(!$allFiltersEmpty1 && !$allFiltersEmpty2) {
+            $combinedResults = array_merge(array_filter($results1), array_filter($results2));
+        }
+        else{
+            $combinedResults = $results1;
         }
 
         return $this->json($combinedResults);

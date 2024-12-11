@@ -18,6 +18,16 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import plLocale from '@fullcalendar/core/locales/pl';
 // FullCalendar Init
+
+const colorConfig = {
+    wykład: '#009999',
+    laboratorium: '#009900',
+    audytoryjne: '#3399ff',
+    projekt: '#994c00',
+    seminarium: '#7f0077',
+    odwołane: '#a0a0a0',
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar'); // Szuka elementu z id=calendar
 
@@ -130,27 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             events: eventsUrl,
             eventDataTransform:function (eventData){
-                switch (eventData.type){
-                    case 'wykład':
-                        eventData.backgroundColor = '#009999'
-                        break;
-                    case 'laboratorium':
-                        eventData.backgroundColor = '#009900'
-                        break;
-                    case 'audytoryjne':
-                        eventData.backgroundColor = '#3399ff'
-                        break;
-                    case 'projekt':
-                        eventData.backgroundColor = '#994c00'
-                        break;
-                    case 'seminarium':
-                        eventData.backgroundColor = '#7f0077'
-                        break;
-                    case 'odwołane':
-                        eventData.backgroundColor = '#a0a0a0'
-                        break;
-                }
-                // kolor ramki dla planu 2
+                eventData.backgroundColor = colorConfig[eventData.type] || '#ffffff';
                 if (eventData.plan === '2') {
                     eventData.borderColor = '#ff0000';
                     eventData.borderWidth = '5px';
@@ -179,6 +169,26 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', function (e) {
             e.preventDefault();
             fetchAndRenderEvent();
+        });
+    });
+
+    function updateEventColors() {
+        calendar.getEvents().forEach((event) => {
+            const eventType = event.extendedProps.type;
+            const backgroundColor = colorConfig[eventType] || '#ffffff';
+            event.setProp('backgroundColor', backgroundColor);
+        });
+    }
+
+    const colorInputs = document.querySelectorAll('input[type="color"]');
+
+    colorInputs.forEach((input) => {
+        const colorType = input.name;
+        input.value = colorConfig[colorType] || '#ffffff';
+
+        input.addEventListener('change', (event) => {
+            colorConfig[colorType] = event.target.value;
+            updateEventColors();
         });
     });
 });

@@ -47,3 +47,87 @@
     border: none;
     cursor: pointer;
 }
+
+.modal {
+    overflow: visible !important;
+}
+
+.filtersScheduleModal {
+    box-shadow: 0 0 50px #aaa;
+}
+
+
+
+
+
+
+/****************
+    Dark mode
+****************/
+
+/* Dark mode styles */
+.dark-mode {
+    --bs-body-bg: #232323;
+    --bs-body-color: #e0e0e0;
+    --bs-primary: #bb86fc;
+    --bs-secondary: #03dac5;
+    --bs-border-color: #333333;
+}
+
+.dark-mode .offcanvas,
+.dark-mode .modal-content {
+    background-color: #1e1e1e;
+    color: var(--bs-body-color);
+}
+
+.dark-mode .btn-secondary {
+    background-color: #333333;
+    color: var(--bs-body-color);
+}
+
+.dark-mode .btn-close {
+    filter: invert(1);
+}
+
+.dark-mode .accordion-button:not(.collapsed) {
+    background-color: #333333;
+    color: var(--bs-body-color);
+}
+
+.dark-mode .accordion-button:not(.collapsed)::after,
+.dark-mode .accordion-button::after {
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'><path fill-rule='evenodd' d='M1.646 4.146a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>");
+}
+
+.dark-mode input {
+    background-color: #333;
+    color: var(--bs-body-color);
+    border: 1px solid #555;
+}
+
+.dark-mode input::placeholder {
+    color: #666;
+}
+
+.dark-mode input:focus {
+    background-color: #444;
+    border: 1px solid #777;
+}
+
+.dark-mode .tooltip .tooltip-inner {
+    background-color: rgba(51, 51, 51, 1);
+    color: var(--bs-body-color);
+}
+
+.dark-mode .tooltip .tooltip-arrow {
+    filter: invert(20%);
+}
+
+.dark-mode .toast {
+    background-color: #333;
+    color: var(--bs-body-color);
+}
+
+.dark-mode .filtersScheduleModal {
+    box-shadow: 0 0 50px #000;
+}

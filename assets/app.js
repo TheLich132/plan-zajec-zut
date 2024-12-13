@@ -19,6 +19,8 @@ import interactionPlugin from '@fullcalendar/interaction';
 import plLocale from '@fullcalendar/core/locales/pl';
 // FullCalendar Init
 
+let colorInputs;
+
 const colorConfig = {
     wykład: '#009999',
     laboratorium: '#009900',
@@ -158,6 +160,9 @@ document.addEventListener('DOMContentLoaded', function () {
             height : 600,
         })
         calendar.render();
+
+        updateLegend();
+        calendar.on('datesSet', () => updateLegend(calendar));
     }
 
     setFormValuesFromURL();
@@ -178,9 +183,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const backgroundColor = colorConfig[eventType] || '#ffffff';
             event.setProp('backgroundColor', backgroundColor);
         });
+        updateLegend();
     }
 
-    const colorInputs = document.querySelectorAll('input[type="color"]');
+    colorInputs = document.querySelectorAll('input[type="color"]');
 
     colorInputs.forEach((input) => {
         const colorType = input.name;
@@ -191,4 +197,63 @@ document.addEventListener('DOMContentLoaded', function () {
             updateEventColors();
         });
     });
+
+    function updateLegend() {
+        const legendContainer = document.getElementById('legendContent');
+        if (!legendContainer) return;
+
+        // Clear existing legend content
+        legendContainer.innerHTML = '';
+
+        // Get visible date range
+        const view = calendar.view;
+        const visibleStart = view.activeStart;
+        const visibleEnd = view.activeEnd;
+
+        // Get all events within the visible range
+        const visibleEvents = calendar.getEvents().filter(event => {
+            return event.start >= visibleStart && event.start < visibleEnd;
+        });
+
+        // Extract unique event types from visible events
+        const eventTypes = [...new Set(visibleEvents.map(event => event.extendedProps.type))];
+
+        // Map event types to colors using the predefined `colorConfig`
+        const legendItems = eventTypes.map(type => {
+            const color = colorConfig[type] || '#ffffff'; // Default to white if type is not in colorConfig
+            return { type, color };
+        });
+
+        // Create legend items
+        legendItems.forEach(item => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legendItem d-flex align-items-center';
+
+            const colorBox = document.createElement('input');
+            colorBox.className = 'me-2';
+            colorBox.type = 'color';
+            colorBox.value = item.color;
+            colorBox.readOnly = true;
+
+            const labelText = document.createElement('label');
+            labelText.className = 'me-4';
+            labelText.textContent = item.type;
+
+            legendItem.appendChild(colorBox);
+            legendItem.appendChild(labelText);
+            legendContainer.appendChild(legendItem);
+        });
+
+        // Show a message if no events are visible
+        if (legendItems.length === 0) {
+            const noEventsMessage = document.createElement('p');
+            noEventsMessage.className = 'mb-0';
+            noEventsMessage.textContent = 'Brak wydarzeń';
+            noEventsMessage.style.fontStyle = 'italic';
+            legendContainer.appendChild(noEventsMessage);
+        }
+
+        // Update color inputs
+        colorInputs = document.querySelectorAll('input[type="color"]');
+    }
 });

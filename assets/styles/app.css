@@ -41,9 +41,27 @@
     overflow: hidden;
 }
 
+/* Fix for border around color picker */
+input[type='color'] {
+    padding: 0;
+    width: 150%;
+    height: 150%;
+}
+
 .colorPickerForm input[type="color"] {
     width: 25px;
     height: 25px;
     border: none;
     cursor: pointer;
+}
+
+.legendItem input[type="color"] {
+    width: 15px;
+    height: 15px;
+    border: none;
+    pointer-events: none;
+}
+
+.legendItem label {
+    pointer-events: none;
 }

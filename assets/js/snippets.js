@@ -59,3 +59,26 @@ colorInputs.forEach((input) => {
         console.log(`Color of ${event.target.name} changed to: ${newValue}`);
     });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleButton = document.getElementById('themeToggleButton');
+    const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
+
+    // Set or toggle dark mode
+    const applyTheme = (isDark) => {
+        document.body.classList.toggle('dark-mode', isDark);
+        themeToggleButton.textContent = isDark ? '☀️' : '🌙';
+    };
+
+    // Initialize theme based on system preferences
+    applyTheme(systemDarkMode.matches);
+
+    // Update theme based on system preferences
+    systemDarkMode.addEventListener('change', (e) => applyTheme(e.matches));
+
+    // Button to toggle dark mode
+    themeToggleButton.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark-mode');
+        themeToggleButton.textContent = isDark ? '☀️' : '🌙';
+    });
+});

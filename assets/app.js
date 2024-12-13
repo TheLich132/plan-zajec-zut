@@ -140,6 +140,9 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             events: eventsUrl,
             eventDataTransform:function (eventData){
+                if(eventData === null){
+                    return {};
+                }
                 eventData.backgroundColor = colorConfig[eventData.type] || '#ffffff';
                 if (eventData.plan === '2') {
                     eventData.borderColor = '#ff0000';

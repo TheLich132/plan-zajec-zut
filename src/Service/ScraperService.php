@@ -17,16 +17,18 @@ class ScraperService
 {
     private EntityManagerInterface $entityManager;
 
-    private FilterService $filterService;
+    private SemesterService $semesterService;
 
     // TODO: set the start and end date dynamically
-    private string $startDate = '2024-12-02';
-    private string $endDate = '2024-12-09';
+    private string $startDate;
+    private string $endDate;
 
-    public function __construct(EntityManagerInterface $entityManager, FilterService $filterService)
+    public function __construct(EntityManagerInterface $entityManager, SemesterService $semesterService)
     {
         $this->entityManager = $entityManager;
-        $this->filterService = $filterService;
+        $this->semesterService = $semesterService;
+        $this->startDate = $this->semesterService->getPreviousYear()['winter_semester']['start_date'];
+        $this->endDate = $this->semesterService->getCurrentYear()['summer_semester']['end_date'];
     }
 
     public function isDataEmpty(string $entityClass): bool
@@ -150,8 +152,8 @@ class ScraperService
     public function scrapeStudents(): void
     {
         $lessons = $this->entityManager->getRepository(Lesson::class)->findAll();
-        // TODO: make it not last forever
-        $viableIndexes = range(50955, 51160);
+        // TODO: scrape all students
+        $viableIndexes = range(50957, 50959);
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
 
@@ -199,14 +201,14 @@ class ScraperService
 
         $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson')->execute();
 
+        // TODO: scrape all teachers
 //        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
         $subjects = $this->entityManager->getRepository(Subject::class)->findAll();
 
-        $suggestedNames = $this->filterService->suggest(Teacher::class, 'Kar');
+        $suggestedNames = ['Pluciński Marcin', 'Banaś Joanna', 'Mościcki Mirosław', 'Pejaś Jerzy', 'El Fray Imed', 'Karczmarczyk Artur', 'Klęsk Przemysław'];
         $suggestedTeachers = $this->entityManager->getRepository(Teacher::class)->findBy(['name' => $suggestedNames]);
         $teachers = $suggestedTeachers;
 
-        $counter = 0;
         foreach ($teachers as $teacher) {
             $name = $teacher->getName();
             $name = str_replace(' ', '%20', $name);
@@ -230,6 +232,7 @@ class ScraperService
                 foreach ($subjects as $subject) {
                     if (stripos($subject->getName(), $data['subject']) !== false
                         && $subject->isStationary() === $isStationary
+                        && $subject->getFaculty() && $room->getFaculty()
                         && $subject->getFaculty()->getName() === $room->getFaculty()->getName()) {
                         $lesson->setSubject($subject);
                         break;
@@ -247,10 +250,6 @@ class ScraperService
                     $lesson->setStudentGroup($group);
                 }
                 $this->entityManager->persist($lesson);
-            }
-            $counter++;
-            if ($counter >= 10) {
-                break;
             }
         }
 

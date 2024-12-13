@@ -24,7 +24,7 @@ class ScrapeAllCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        ini_set('memory_limit', '512M');
+        ini_set('memory_limit', '-1');
 
         $this->scraperService->scrapeRooms();
         $output->writeln('Rooms scraped successfully.');

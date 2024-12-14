@@ -123,6 +123,56 @@ class FilterService
         return array_column($qb->getQuery()->getResult(), 'name');
     }
 
+    /**
+     * @param array $lessons Array of Lesson objects returned by filter() method
+     * @return array Array of statistics with the following keys:
+     * \- total: total number of lessons
+     * \- hours: total number of hours
+     * \- room: array with room names as keys and number of lessons as values
+     * \- teacher: array with teacher names as keys and number of lessons as values
+     * \- subject: array with subject names as keys and number of lessons as values
+     * \- group: array with group names as keys and number of lessons as values
+     * \- form: array with form names as keys and number of lessons as values
+     * \- stationary: array with 'stationary' and 'nonStationary' keys and number of lessons as values
+     */
+    // Example usage: filterService->calculateStatistics($lessons);
+    public function calculateStatistics(array $lessons): array
+    {
+        $statistics = [
+            'total' => count($lessons),
+            'hours' => 0,
+            'room' => [],
+            'teacher' => [],
+            'subject' => [],
+            'group' => [],
+            'form' => [],
+            'stationary' => [],
+        ];
+
+        foreach ($lessons as $lesson) {
+            $subject = $lesson->getSubject();
+            $teacher = $lesson->getTeacher();
+            $room = $lesson->getRoom();
+            $studentGroup = $lesson->getStudentGroup();
+
+            if (!$subject || !$teacher || !$room || !$studentGroup) {
+                continue;
+            }
+
+            $statistics['room'][$room->getName()] = ($statistics['room'][$room->getName()] ?? 0) + 1;
+            $statistics['teacher'][$teacher->getName()] = ($statistics['teacher'][$teacher->getName()] ?? 0) + 1;
+            $statistics['subject'][$subject->getName()] = ($statistics['subject'][$subject->getName()] ?? 0) + 1;
+            $statistics['group'][$studentGroup->getName()] = ($statistics['group'][$studentGroup->getName()] ?? 0) + 1;
+            $statistics['form'][$lesson->getFormLesson()] = ($statistics['form'][$lesson->getFormLesson()] ?? 0) + 1;
+            $statistics['stationary'][$subject->isStationary() ? 'stationary' : 'nonStationary'] = ($statistics['stationary'][$subject->isStationary() ? 'stationary' : 'nonStationary'] ?? 0) + 1;
+
+
+            $statistics['hours'] += $lesson->getStart()->diff($lesson->getFinish())->h;
+        }
+
+        return $statistics;
+    }
+
     // Deletes rows from all tables that are older than a year
     public function deleteOldData(): void
     {

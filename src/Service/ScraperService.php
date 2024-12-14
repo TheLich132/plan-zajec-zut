@@ -19,7 +19,6 @@ class ScraperService
 
     private SemesterService $semesterService;
 
-    // TODO: set the start and end date dynamically
     private string $startDate;
     private string $endDate;
 
@@ -33,7 +32,7 @@ class ScraperService
 
     public function isDataEmpty(string $entityClass): bool
     {
-        return $this->entityManager->getRepository($entityClass)->count([]) === 0;
+        return $this->entityManager->getRepository($entityClass)->count() === 0;
     }
 
     public function scrapeNames(string $url, string $entityClass, string $dataKey, int $batchSize = 100): void

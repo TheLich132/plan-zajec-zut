@@ -24,24 +24,43 @@ class ScrapeAllCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // TODO: retry after failed connection
         ini_set('memory_limit', '-1');
 
-        $this->scraperService->scrapeRooms();
-        $output->writeln('Rooms scraped successfully.');
+        $maxRetries = 10;
+        $retryDelay = 5; // seconds
 
-        $this->scraperService->scrapeSubjects();
-        $output->writeln('Subjects scraped successfully.');
+        $tasks = [
+            ['method' => 'scrapeRooms', 'message' => 'Rooms scraped successfully.'],
+            ['method' => 'scrapeSubjects', 'message' => 'Subjects scraped successfully.'],
+            ['method' => 'scrapeTeachers', 'message' => 'Teachers scraped successfully.'],
+            ['method' => 'scrapeLessons', 'message' => 'Lessons scraped successfully.'],
+            ['method' => 'scrapeStudents', 'message' => 'Students scraped successfully.'],
+        ];
 
-        $this->scraperService->scrapeTeachers();
-        $output->writeln('Teachers scraped successfully.');
+        foreach ($tasks as $task) {
+            $success = false;
+            $attempts = 0;
 
-        $this->scraperService->scrapeLessons();
-        $output->writeln('Lessons scraped successfully.');
+            while (!$success && $attempts < $maxRetries) {
+                try {
+                    $attempts++;
+                    $this->scraperService->{$task['method']}();
+                    $output->writeln($task['message']);
+                    $success = true;
+                } catch (\Exception $e) {
+                    $output->writeln("<error>Failed to execute {$task['method']} on attempt $attempts: {$e->getMessage()}</error>");
 
-        $this->scraperService->scrapeStudents();
-        $output->writeln('Students scraped successfully.');
+                    if ($attempts < $maxRetries) {
+                        $output->writeln("Retrying in $retryDelay seconds...");
+                        sleep($retryDelay);
+                    } else {
+                        $output->writeln("<error>Max retries reached for {$task['method']}. Skipping...</error>");
+                    }
+                }
+            }
+        }
 
         return Command::SUCCESS;
     }
+
 }

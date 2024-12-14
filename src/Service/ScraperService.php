@@ -153,8 +153,7 @@ class ScraperService
     public function scrapeStudents(array $indexes = []): void
     {
         $lessons = $this->entityManager->getRepository(Lesson::class)->findAll();
-        // TODO: scrape all students
-        $viableIndexes = $indexes ?: range(50957, 50959);
+        $viableIndexes = $indexes ?: range(0, 75000);
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
 
@@ -215,13 +214,18 @@ class ScraperService
             ->setParameter('finish', $finish)
             ->execute();
 
-        // TODO: scrape all teachers
-//        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
+        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
         $subjects = $this->entityManager->getRepository(Subject::class)->findAll();
 
-        $suggestedNames = ['Pluciński Marcin', 'Banaś Joanna', 'Mościcki Mirosław', 'Pejaś Jerzy', 'El Fray Imed', 'Karczmarczyk Artur', 'Klęsk Przemysław'];
-        $suggestedTeachers = $this->entityManager->getRepository(Teacher::class)->findBy(['name' => $suggestedNames]);
-        $teachers = $suggestedTeachers;
+//        $suggestedNames = ['Pluciński Marcin', 'Banaś Joanna', 'Mościcki Mirosław', 'Pejaś Jerzy', 'El Fray Imed',
+//            'Karczmarczyk Artur', 'Klęsk Przemysław', "Śmietanka Łukasz", "Śliwiński Grzegorz", "Łosiewicz Zbigniew",
+//            "Łazoryszczak Mirosław", "Wysocki Włodzimierz", "Twardochleb Michał", "Trubiłko Joanna", "Sulikowski Piotr",
+//            "Sklyar Grigorij", "Siedlecki Krzysztof", "Rozenberg Leonard", "Radliński Łukasz", "Poliwoda Maciej", "Piela Piotr",
+//            "Olejnik-Krugły Agnieszka", "Nowosielski Adam", "Mąka Tomasz", "Mościcki Mirosław", "Lewandowska Anna", "Kołodziejczyk Joanna",
+//            "Korytkowski Przemysław", "Karczmarczyk Aleksandra", "Kapruziak Mariusz", "Hyla Tomasz", "Fedorov Mykhailo",
+//            "Fabisiak Luiza", "Dziśko Maja", "Błaszczyński Tomasz", "Bortko Kamil", "Barcz Anna", "Wernikowski Marek", "Wernikowski Sławomir"];
+//        $suggestedTeachers = $this->entityManager->getRepository(Teacher::class)->findBy(['name' => $suggestedNames]);
+//        $teachers = $suggestedTeachers;
 
         foreach ($teachers as $teacher) {
             $name = $teacher->getName();
@@ -235,7 +239,7 @@ class ScraperService
                 }
                 $lesson = new Lesson();
                 $lesson->setName($data['title']);
-                if ($data['lesson_status'] === 'konsultacje'){
+                if ($data['lesson_status'] === 'konsultacje') {
                     $lesson->setFormLesson('konsultacje');
                 } else {
                     $lesson->setFormLesson($data['lesson_form']);
@@ -248,7 +252,7 @@ class ScraperService
                 $lesson->setRoom($room);
                 $isStationary = $data['tok_name'] ? $this->determineStationary($data['tok_name']) : null;
                 foreach ($subjects as $subject) {
-                     if (stripos($subject->getName(), $data['subject']) !== false
+                    if (stripos($subject->getName(), $data['subject']) !== false
                         && $subject->isStationary() === $isStationary
                         && ($subject->getFaculty() && $room->getFaculty()
                             && ($subject->getFaculty()->getName() === $room->getFaculty()->getName()

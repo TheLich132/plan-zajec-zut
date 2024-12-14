@@ -61,6 +61,7 @@ class ScraperService
         $this->entityManager->clear();
     }
 
+
     public function scrapeTeachers(): void
     {
         $this->scrapeNames(
@@ -195,6 +196,7 @@ class ScraperService
 
     public function scrapeLessons(): void
     {
+
         if ($this->isDataEmpty(Teacher::class)) {
             return;
         }
@@ -221,7 +223,11 @@ class ScraperService
                 }
                 $lesson = new Lesson();
                 $lesson->setName($data['title']);
-                $lesson->setFormLesson($data['lesson_form']);
+                if ($data['lesson_status'] === 'konsultacje'){
+                    $lesson->setFormLesson('konsultacje');
+                } else {
+                    $lesson->setFormLesson($data['lesson_form']);
+                }
                 $lesson->setHours($data['hours']);
                 $lesson->setStart(new \DateTime($data['start']));
                 $lesson->setFinish(new \DateTime($data['end']));
@@ -230,14 +236,43 @@ class ScraperService
                 $lesson->setRoom($room);
                 $isStationary = $data['tok_name'] ? $this->determineStationary($data['tok_name']) : null;
                 foreach ($subjects as $subject) {
-                    if (stripos($subject->getName(), $data['subject']) !== false
+                     if (stripos($subject->getName(), $data['subject']) !== false
                         && $subject->isStationary() === $isStationary
-                        && $subject->getFaculty() && $room->getFaculty()
-                        && $subject->getFaculty()->getName() === $room->getFaculty()->getName()) {
+                        && ($subject->getFaculty() && $room->getFaculty()
+                            && ($subject->getFaculty()->getName() === $room->getFaculty()->getName()
+                                || $room->getFaculty()->getName() === 'IiJM'))) {
                         $lesson->setSubject($subject);
                         break;
                     }
                 }
+                // The commented fragment needs to be fixed bc it adds the same subject multiple times
+//                if (!$lesson->getSubject()) {
+//                    $subject = new Subject();
+//                    $subject->setStationary($isStationary);
+//                    //echo 'Subject ' . $data['subject'] . ' not found' . PHP_EOL;
+//                    if($data['lesson_status'] === 'konsultacje' || !$room){
+//
+//                        $faculty = " ";
+//                    }
+//                    else {
+//                        $faculty = $room->getFaculty()->getName();
+//                        $subject->setFaculty($room->getFaculty());
+//                    }
+//                    $subjectName = $data['subject'];
+//                    $isStationaryString = match ($isStationary) {
+//                        true => 'SS',
+//                        false => 'SN',
+//                        default => " ",
+//                    };
+//                    $subjectName = $subjectName . ' (' . $faculty . ', ,' . $isStationaryString . ', )';
+//                    $subject->setName($subjectName);
+//
+//                    $this->entityManager->persist($subject);
+//                    $this->entityManager->flush();
+//                    $lesson->setSubject($subject);
+//                    echo 'Subject ' . $subjectName . ' added' . PHP_EOL;
+//
+//                }
                 // Check if the group already exists
                 if (!empty($data['group_name'])) {
                     $group = $this->entityManager->getRepository(Group::class)->findOneBy(['name' => $data['group_name']]);
@@ -250,9 +285,10 @@ class ScraperService
                     $lesson->setStudentGroup($group);
                 }
                 $this->entityManager->persist($lesson);
-            }
-        }
 
+            }
+
+        }
         $this->entityManager->flush();
         $this->entityManager->clear();
     }

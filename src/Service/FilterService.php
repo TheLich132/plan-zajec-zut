@@ -38,7 +38,7 @@ class FilterService
                            string            $subject = '',
                            string            $group = '',
                            string            $student = '',
-                           bool              $isStationary = null,
+                           ?bool             $isStationary = null,
                            string            $form = '',
                            DateTimeInterface $start = new \DateTime('1993-01-01 00:00:00'),
                            DateTimeInterface $finish = new \DateTime('2033-12-31 23:59:59')): array

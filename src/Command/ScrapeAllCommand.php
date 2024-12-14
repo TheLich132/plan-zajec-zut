@@ -24,6 +24,7 @@ class ScrapeAllCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        // TODO: retry after failed connection
         ini_set('memory_limit', '-1');
 
         $this->scraperService->scrapeRooms();

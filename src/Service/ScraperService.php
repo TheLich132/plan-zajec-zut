@@ -11,6 +11,7 @@ use App\Entity\Room;
 use App\Entity\Subject;
 use App\Entity\Student;
 use App\Enum\Degree;
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ScraperService
@@ -149,11 +150,11 @@ class ScraperService
     }
 
 
-    public function scrapeStudents(): void
+    public function scrapeStudents(array $indexes = []): void
     {
         $lessons = $this->entityManager->getRepository(Lesson::class)->findAll();
         // TODO: scrape all students
-        $viableIndexes = range(50957, 50959);
+        $viableIndexes = $indexes ?: range(50957, 50959);
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
 
@@ -193,14 +194,26 @@ class ScraperService
     }
 
 
-    public function scrapeLessons(): void
+    public function scrapeLessons(DateTimeInterface $start = null, DateTimeInterface $finish = null): void
     {
+        if ($start === null) {
+            $start = new \DateTime($this->startDate);
+        }
+        if ($finish === null) {
+            $finish = new \DateTime($this->endDate);
+        }
+
+        $start = $start->format('Y-m-d');
+        $finish = $finish->format('Y-m-d');
 
         if ($this->isDataEmpty(Teacher::class)) {
             return;
         }
 
-        $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson')->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson l WHERE l.start >= :start AND l.finish <= :finish')
+            ->setParameter('start', $start)
+            ->setParameter('finish', $finish)
+            ->execute();
 
         // TODO: scrape all teachers
 //        $teachers = $this->entityManager->getRepository(Teacher::class)->findAll();
@@ -213,7 +226,7 @@ class ScraperService
         foreach ($teachers as $teacher) {
             $name = $teacher->getName();
             $name = str_replace(' ', '%20', $name);
-            $url = 'https://plan.zut.edu.pl/schedule_student.php?teacher=' . $name . '&start=' . $this->startDate . '&end=' . $this->endDate;
+            $url = 'https://plan.zut.edu.pl/schedule_student.php?teacher=' . $name . '&start=' . $start . '&end=' . $finish;
             $response = file_get_contents($url);
             $fullData = json_decode($response, true);
             foreach ($fullData as $data) {
@@ -349,6 +362,66 @@ class ScraperService
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
         $this->entityManager->getConnection()->executeStatement('DELETE FROM student_lesson');
 
+    }
+
+    // This function periodically updates data in the current week
+    public function updateData(): void
+    {
+        // get the newest createdAt date from the lessons
+        $lastUpdateDate = $this->entityManager->getRepository(Lesson::class)->findOneBy([], ['createdAt' => 'DESC']);
+        // if less than 12 hours have passed since the last update, return
+        if ($lastUpdateDate && $lastUpdateDate->getCreatedAt() > new \DateTime('now - 12 hours')) {
+            echo 'Data already updated' . PHP_EOL;
+            return;
+        }
+        $start = new \DateTime('now');
+        $finish = new \DateTime('now + 7 days');
+        $start->setTime(0, 0, 0);
+        $finish->setTime(23, 59, 59);
+
+        $this->scrapeLessons($start, $finish);
+
+        $students = $this->entityManager->getRepository(Student::class)->findAll();
+        $indexes = [];
+        foreach ($students as $student) {
+            $indexes[] = $student->getIndexNumber();
+        }
+
+        $this->scrapeStudents($indexes);
+
+        echo 'Data updated' . PHP_EOL;
+    }
+
+    // Deletes rows from all tables that are older than a year
+    public function deleteOldData(): void
+    {
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Lesson l WHERE l.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Group g WHERE g.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Student s WHERE s.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Room r WHERE r.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Teacher t WHERE t.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Subject s WHERE s.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Faculty f WHERE f.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Major m WHERE m.createdAt < :date')
+            ->setParameter('date', new \DateTime('-1 year'))
+            ->execute();
+        // Killing orphans for the greater good of the database
+        $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student WHERE group_id NOT IN (SELECT id FROM `group`) OR student_id NOT IN (SELECT id FROM student)');
+        $this->entityManager->getConnection()->executeStatement('DELETE FROM student_lesson WHERE student_id NOT IN (SELECT id FROM student) OR lesson_id NOT IN (SELECT id FROM lesson)');
     }
 
 

@@ -28,6 +28,8 @@ const colorConfig = {
     projekt: '#994c00',
     seminarium: '#7f0077',
     odwołane: '#a0a0a0',
+    konsultacje: '#ff8800',
+    brak_formy: '#424242',
 };
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -141,14 +143,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             },
             events: eventsUrl,
-            eventDataTransform:function (eventData){
-                if(eventData === null){
+            eventDataTransform: function (eventData) {
+                if (eventData === null) {
                     return {};
                 }
-                eventData.backgroundColor = colorConfig[eventData.type] || '#ffffff';
-                if (eventData.plan === '2') {
-                    eventData.borderColor = '#ff0000';
-                    eventData.borderWidth = '5px';
+                eventData.backgroundColor = colorConfig[eventData.type] || '#ff8800';
+
+                eventData.classNames = [eventData.type];
+
+                if (!eventData.title) {
+                    eventData.title = 'Nieznane zajęcia';
+                }
+                if (!eventData.start) {
+                    eventData.start = new Date();
                 }
                 return eventData;
             },
@@ -164,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         calendar.render();
 
-        updateLegend();
+        //updateLegend();
         calendar.on('datesSet', () => updateLegend(calendar));
     }
 

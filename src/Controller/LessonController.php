@@ -27,7 +27,6 @@ class LessonController extends AbstractController
         $group2 = $request->query->get('group2');
         $albumNumber2 = $request->query->get('albumNumber2');
 
-        // Funkcja do budowania zapytań z numerem planu
         $buildQuery = function ($lecturer, $room, $subject, $group, $albumNumber, $planNumber) use ($lessonRepository) {
             $qb = $lessonRepository->createQueryBuilder('l')
                 ->leftJoin('l.teacher', 't')
@@ -63,7 +62,7 @@ class LessonController extends AbstractController
 
             $lessons = $qb->getQuery()->getResult();
 
-            // Dodaj znacznik planu do każdego wyniku
+            // Dodaj znacznik planu do każdego wyniku, nawet jeśli niektóre dane są null
             return array_map(function ($lesson) use ($planNumber) {
                 $subject = $lesson->getSubject();
                 $teacher = $lesson->getTeacher();
@@ -71,42 +70,32 @@ class LessonController extends AbstractController
                 $studentGroup = $lesson->getStudentGroup();
                 $formLesson = $lesson->getFormLesson();
 
-                if (!$subject || !$teacher || !$room || !$studentGroup) {
-                    return null;
-                }
-
                 return [
-                    'title' => $subject->getName(),
+                    'title' => (strpos($lesson->getName(), 'Konsultacje') !== false)
+                        ? $lesson->getName() . " " . ($teacher ? $teacher->getName() : 'Brak prowadzącego')
+                        : ($subject ? $subject->getName() : 'Brak przedmiotu'),
                     'start' => $lesson->getStart()?->format('Y-m-d H:i:s'),
                     'end' => $lesson->getFinish()?->format('Y-m-d H:i:s'),
-                    'description' => 'Sala: ' . $room->getName() . ', Grupa: ' . $studentGroup->getName() . ', Prowadzący/a: ' . $teacher->getName() . ' - (' . $formLesson . ')',
-                    'type' => $formLesson,
-                    'plan' => $planNumber, // Dodaj numer planu
+                    'description' => (strpos($lesson->getName(), 'Konsultacje') !== false)
+                        ? 'Prowadzący/a: ' . ($teacher ? $teacher->getName() : 'Brak prowadzącego')
+                        : 'Sala: ' . ($room ? $room->getName() : 'Brak sali') . ', Grupa: ' . ($studentGroup ? $studentGroup->getName() : 'Brak grupy') . ', Prowadzący/a: ' . ($teacher ? $teacher->getName() : 'Brak prowadzącego') . ' - (' . ($formLesson ?? 'Brak formy zajęć') . ')',
+                    'type' => $formLesson ?? 'brak_formy',
+                    'plan' => $planNumber,
                 ];
             }, $lessons);
         };
 
-        // Pobieranie wyników dla obu planów
-
-
-        // Łączenie wyników z obu planów
-
-
-        $allFiltersEmpty1 =
-            !$lecturer1 && !$room1 && !$subject1 && !$group1 && !$albumNumber1;
-        $allFiltersEmpty2 =
-            !$lecturer2 && !$room2 && !$subject2 && !$group2 && !$albumNumber2;
+        $allFiltersEmpty1 = !$lecturer1 && !$room1 && !$subject1 && !$group1 && !$albumNumber1;
+        $allFiltersEmpty2 = !$lecturer2 && !$room2 && !$subject2 && !$group2 && !$albumNumber2;
 
         $results1 = $buildQuery($lecturer1, $room1, $subject1, $group1, $albumNumber1, '1');
         $results2 = $buildQuery($lecturer2, $room2, $subject2, $group2, $albumNumber2, '2');
 
         if ($allFiltersEmpty1 && $allFiltersEmpty2) {
             return $this->json([]);
-        }
-        elseif(!$allFiltersEmpty1 && !$allFiltersEmpty2) {
+        } elseif (!$allFiltersEmpty1 && !$allFiltersEmpty2) {
             $combinedResults = array_merge(array_filter($results1), array_filter($results2));
-        }
-        else{
+        } else {
             $combinedResults = $results1;
         }
 

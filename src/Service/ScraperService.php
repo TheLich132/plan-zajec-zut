@@ -166,7 +166,7 @@ class ScraperService
             while (!$success && $attempts < $maxRetries) {
                 try {
 
-                    echo  $index . PHP_EOL;
+                    //echo  $index . PHP_EOL;
                     $studentUrl = 'https://plan.zut.edu.pl/schedule_student.php?number=' . $index . '&start=' . $this->startDate . '&end=' . $this->endDate;
                     $response = file_get_contents($studentUrl);
 
@@ -207,11 +207,10 @@ class ScraperService
                         echo 'Max retries reached for student ' . $index . '. Skipping...' . PHP_EOL;
                     }
                 }
-
             }
-            $this->entityManager->flush();
-            $this->entityManager->clear();
         }
+        $this->entityManager->flush();
+        $this->entityManager->clear();
     }
 
 

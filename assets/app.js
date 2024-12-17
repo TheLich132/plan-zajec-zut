@@ -19,6 +19,8 @@ import interactionPlugin from '@fullcalendar/interaction';
 import plLocale from '@fullcalendar/core/locales/pl';
 // FullCalendar Init
 
+let legendUpdated = false; // To prevent multiple updates during rendering
+
 let colorInputs;
 
 const colorConfig = {
@@ -161,18 +163,24 @@ document.addEventListener('DOMContentLoaded', function () {
             },
 
             eventDidMount: function (info){
+                if (!legendUpdated) {
+                    legendUpdated = true; // Prevent multiple updates
+                    updateLegend(calendar);
+                }
+
                 const tooltip = new bootstrap.Tooltip(info.el, {
                     title: info.event.extendedProps.description,
                     placement: 'top',
                     trigger: 'hover',
                 });
             },
+            datesSet: function () {
+                legendUpdated = false; // Reset flag when view changes
+                updateLegend(calendar);
+            },
             height : 600,
         })
-        calendar.render();
-
-        //updateLegend();
-        calendar.on('datesSet', () => updateLegend(calendar));
+        calendar.render()
     }
 
     setFormValuesFromURL();
@@ -193,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const backgroundColor = colorConfig[eventType] || '#ffffff';
             event.setProp('backgroundColor', backgroundColor);
         });
-        updateLegend();
+        updateLegend(calendar);
     }
 
     colorInputs = document.querySelectorAll('input[type="color"]');
@@ -208,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    function updateLegend() {
+    function updateLegend(calendar) {
         const legendContainer = document.getElementById('legendContent');
         if (!legendContainer) return;
 

@@ -25,6 +25,7 @@ class ScrapeStudentsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        ini_set('memory_limit', '-1');
         $this->scraperService->scrapeStudents();
 
         $output->writeln('Students scraped successfully.');

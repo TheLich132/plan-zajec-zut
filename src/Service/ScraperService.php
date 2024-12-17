@@ -153,7 +153,7 @@ class ScraperService
     public function scrapeStudents(array $indexes = []): void
     {
         $lessons = $this->entityManager->getRepository(Lesson::class)->findAll();
-        $viableIndexes = $indexes ?: range(0, 75000);
+        $viableIndexes = $indexes ?: range(0, 60000);
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
 
@@ -185,9 +185,9 @@ class ScraperService
                 }
             }
             $this->entityManager->persist($student);
+            $this->entityManager->flush();
             echo 'Student ' . $index . ' scraped' . PHP_EOL;
         }
-
         $this->entityManager->flush();
         $this->entityManager->clear();
     }

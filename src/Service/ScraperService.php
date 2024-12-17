@@ -157,39 +157,61 @@ class ScraperService
         $this->entityManager->createQuery('DELETE FROM App\Entity\Student')->execute();
         $this->entityManager->getConnection()->executeStatement('DELETE FROM group_student');
 
+        $maxRetries = 10;
+        $retryDelay = 5; // seconds
+
         foreach ($viableIndexes as $index) {
-            $studentUrl = 'https://plan.zut.edu.pl/schedule_student.php?number=' . $index . '&start=' . $this->startDate . '&end=' . $this->endDate;
-            $response = file_get_contents($studentUrl);
+            $attempts = 0;
+            $success = false;
+            while (!$success && $attempts < $maxRetries) {
+                try {
 
-            if ($response === '[[]]') {
-                continue;
-            }
+                    echo  $index . PHP_EOL;
+                    $studentUrl = 'https://plan.zut.edu.pl/schedule_student.php?number=' . $index . '&start=' . $this->startDate . '&end=' . $this->endDate;
+                    $response = file_get_contents($studentUrl);
 
-            $data = json_decode($response, true);
+                    $attempts++;
+                    if ($response === '[[]]') {
+                        $success = true;
+                        continue;
+                    }
 
-            $student = new Student();
-            $student->setIndexNumber($index);
-            foreach ($data as $item) {
-                if (empty($item['worker'])) {
-                    continue;
-                }
-                foreach ($lessons as $lesson) {
-                    if ($lesson->getTeacher()->getName() === $item['worker']
-                        && $lesson->getStart()->format('Y-m-d\TH:i:s') === $item['start']
-                        && $lesson->getFinish()->format('Y-m-d\TH:i:s') === $item['end']
-                        && $lesson->getRoom() !== null
-                        && $lesson->getRoom()->getName() === $item['room']) {
-                        $student->addGroup($lesson->getStudentGroup());
-                        $student->addLesson($lesson);
+                    $data = json_decode($response, true);
+                    $student = new Student();
+                    $student->setIndexNumber($index);
+                    foreach ($data as $item) {
+                        if (empty($item['worker'])) {
+                            continue;
+                        }
+                        foreach ($lessons as $lesson) {
+                            if ($lesson->getTeacher()->getName() === $item['worker']
+                                && $lesson->getStart()->format('Y-m-d\TH:i:s') === $item['start']
+                                && $lesson->getFinish()->format('Y-m-d\TH:i:s') === $item['end']
+                                && $lesson->getRoom() !== null
+                                && $lesson->getRoom()->getName() === $item['room']) {
+                                $student->addGroup($lesson->getStudentGroup());
+                                $student->addLesson($lesson);
+                            }
+                        }
+                    }
+                    $this->entityManager->persist($student);
+                    $this->entityManager->flush();
+                    echo 'Student ' . $index . ' scraped' . PHP_EOL;
+                    $success = true;
+                } catch (\Exception $e) {
+                    echo 'Failed to scrape student ' . $index . ' on attempt ' . $attempts . ': ' . $e->getMessage() . PHP_EOL;
+                    if ($attempts < $maxRetries) {
+                        echo 'Retrying in ' . $retryDelay . ' seconds...' . PHP_EOL;
+                        sleep($retryDelay);
+                    } else {
+                        echo 'Max retries reached for student ' . $index . '. Skipping...' . PHP_EOL;
                     }
                 }
+
             }
-            $this->entityManager->persist($student);
             $this->entityManager->flush();
-            echo 'Student ' . $index . ' scraped' . PHP_EOL;
+            $this->entityManager->clear();
         }
-        $this->entityManager->flush();
-        $this->entityManager->clear();
     }
 
 

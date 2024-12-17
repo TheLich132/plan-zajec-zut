@@ -26,8 +26,30 @@ class ScrapeStudentsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         ini_set('memory_limit', '-1');
-        $this->scraperService->scrapeStudents();
 
+        //unused, because there are 10 attempts for each student
+
+//        $maxRetries = 10;
+//        $retryDelay = 5; // seconds
+//        $attempts = 0;
+//        $success = false;
+//        while(!$success && $attempts < $maxRetries) {
+//            try {
+//                $attempts++;
+//                $this->scraperService->scrapeStudents();
+//                $output->writeln('Students scraped successfully.');
+//                $success = true;
+//            } catch (\Exception $e) {
+//                $output->writeln("<error>Failed to execute scrapeStudents on attempt $attempts: {$e->getMessage()}</error>");
+//                if ($attempts < $maxRetries) {
+//                    $output->writeln("Retrying in $retryDelay seconds...");
+//                    sleep($retryDelay);
+//                } else {
+//                    $output->writeln("<error>Max retries reached for scrapeStudents. Skipping...</error>");
+//                }
+//            }
+//        }
+        $this->scraperService->scrapeStudents();
         $output->writeln('Students scraped successfully.');
 
         return Command::SUCCESS;

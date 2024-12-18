@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar'); // Szuka elementu z id=calendar
 
     let calendar;
+    let currentView = 'timeGridWeek'; // Default view
 
     // Ustawianie ekranu startowego z linku
     function setFormValuesFromURL() {
@@ -175,6 +176,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             },
             datesSet: function () {
+                // Update view change button text
+                currentView = calendar.view.type;
+                updateViewButton();
+
                 legendUpdated = false; // Reset flag when view changes
                 updateLegend(calendar);
             },
@@ -274,4 +279,144 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update color inputs
         colorInputs = document.querySelectorAll('input[type="color"]');
     }
+
+    function handleViewChangeDisplay() {
+        let mobileViewButtonsContainer = document.getElementById('mobileViewButtons');
+        if (!mobileViewButtonsContainer) {
+            console.error("Mobile view buttons container not found");
+            return;
+        }
+
+        let headerToolbar = calendarEl.querySelector('.fc-header-toolbar');
+        if (!headerToolbar) {
+            console.error("Header toolbar not found");
+            return;
+        }
+
+        let buttonGroups = headerToolbar.querySelectorAll('.fc-button-group');
+        if (!buttonGroups) {
+            console.error("No button groups found");
+            return;
+        }
+
+        let viewButtonsGroup;
+        if (window.innerWidth < 768) {
+            // Filter to find the view buttons group
+            viewButtonsGroup = Array.from(buttonGroups).find(group => {
+                let buttons = group.querySelectorAll('button');
+                return Array.from(buttons).some(button => {
+                    let buttonText = button.innerText.toLowerCase();
+                    return ['dzień', 'tydzień', 'miesiąc', 'semestr'].some(view => buttonText.includes(view));
+                });
+            });
+        } else {
+            viewButtonsGroup = mobileViewButtonsContainer.querySelector('.fc-button-group');
+        }
+
+        if (!viewButtonsGroup) {
+            console.error("View buttons group not found");
+            return;
+        }
+
+        if (window.innerWidth < 768) {
+            // Move view buttons to modal
+            if (!mobileViewButtonsContainer.contains(viewButtonsGroup)) {
+                for (let button of viewButtonsGroup.children) {
+                    button.classList.add('btn');
+                    if(button.classList.contains('fc-button-active')) {
+                        button.classList.add('btn-primary');
+                    } else {
+                        button.classList.add('btn-secondary');
+                    }
+                }
+                mobileViewButtonsContainer.appendChild(viewButtonsGroup);
+            }
+
+            // Create and show the mobile view button
+            if (!document.getElementById('openViewChangeModalButton')) {
+                const mobileViewButton = document.createElement('button');
+                mobileViewButton.id = 'openViewChangeModalButton';
+                mobileViewButton.className = 'btn btn-primary';
+                mobileViewButton.innerText = getViewButtonText(calendar.view.type);
+                mobileViewButton.onclick = function () {
+                    let viewChangeModal = new bootstrap.Modal(document.getElementById('viewChangeModal'));
+                    viewChangeModal.show();
+                };
+                headerToolbar.appendChild(mobileViewButton);
+            } else {
+                // Update the button text if it already exists
+                document.getElementById('openViewChangeModalButton').innerText = getViewButtonText(calendar.view.type);
+            }
+        } else {
+            // Move view buttons back to calendar header
+            if (!headerToolbar.contains(viewButtonsGroup)) {
+                headerToolbar.appendChild(viewButtonsGroup);
+            }
+
+            // Remove the mobile view button
+            const mobileViewButton = document.getElementById('openViewChangeModalButton');
+            if (mobileViewButton) {
+                mobileViewButton.remove();
+            }
+
+            // Hide modal
+            let viewChangeModal = bootstrap.Modal.getInstance(document.getElementById('viewChangeModal'));
+            if (viewChangeModal) {
+                viewChangeModal.hide();
+            }
+        }
+    }
+
+    function getViewButtonText(view) {
+        switch(view) {
+            case 'dayGridMonth':
+                return 'Miesiąc';
+            case 'timeGridWeek':
+                return 'Tydzień';
+            case 'timeGridDay':
+                return 'Dzień';
+            case 'semesterView':
+                return 'Semestr';
+            default:
+                return 'Widok';
+        }
+    }
+
+    function updateViewButton() {
+        const mobileViewButton = document.getElementById('openViewChangeModalButton');
+        if (mobileViewButton) {
+            mobileViewButton.innerText = getViewButtonText(currentView);
+        }
+
+        // Update classes for view buttons
+        let mobileViewButtonsContainer = document.getElementById('mobileViewButtons');
+        if (!mobileViewButtonsContainer) {
+            console.error("Mobile view buttons container not found");
+            return;
+        }
+
+        const buttonGroups = mobileViewButtonsContainer.querySelectorAll('.fc-button-group');
+        if (!buttonGroups) {
+            console.error("No button groups found");
+            return;
+        }
+
+        for (let group of buttonGroups) {
+            // Remove classes from all buttons
+            for (let button of group.children) {
+                button.classList.remove('btn-primary', 'btn-secondary', 'btn');
+
+                // Re-add classes based on active button
+                button.classList.add('btn');
+                if (button.classList.contains('fc-button-active')) {
+                    button.classList.add('btn-primary');
+                } else {
+                    button.classList.add('btn-secondary');
+                }
+            }
+        }
+    }
+
+    handleViewChangeDisplay();
+    window.addEventListener('resize', handleViewChangeDisplay);
 });

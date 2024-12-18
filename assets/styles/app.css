@@ -16,12 +16,12 @@
 
 /* Pozycja piewsiowego formularza jak jest aktywny */
 #firstScheduleForm.active-form {
-    left: 0% !important;
+    left: 0 !important;
 }
 
 /* Pozycja drugiego formularza jak jest aktywny */
 #secondScheduleForm.active-form {
-    left: 0% !important;
+    left: 0 !important;
 }
 
 /* Pozycja pierwszego formularza jak jest nieaktywny */
@@ -73,7 +73,10 @@ input[type='color'] {
     box-shadow: 0 0 50px #aaa;
 }
 
-
+#mobileViewButtons .fc-button-group .btn {
+    width: 100%;
+    margin-bottom: 10px;
+}
 
 
 
@@ -147,4 +150,77 @@ input[type='color'] {
 
 .dark-mode .filtersScheduleModal {
     box-shadow: 0 0 50px #000;
+}
+
+
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    header h1 {
+        margin: 0;
+        text-align: center;
+        width: 100%;
+    }
+
+    .offcanvas.offcanvas-start,
+    .offcanvas.offcanvas-end,
+    .offcanvas.offcanvas-top,
+    .offcanvas.offcanvas-bottom {
+        width: 100vw !important;
+        height: 100vh !important;
+    }
+
+    .offcanvas-body {
+        padding: 1rem;
+    }
+
+    .offcanvas-header {
+        padding: 1rem 1rem 0 1rem;
+    }
+
+    .offcanvas-title {
+        font-size: 1.25rem;
+    }
+
+    .calendar-placeholder {
+        margin-top: 1rem;
+    }
+
+    #legend {
+        max-height: none;
+        overflow: visible;
+    }
+
+    #legendContent {
+        display: block;
+    }
+
+    .legendItem {
+        margin-bottom: 10px;
+    }
+
+    .border {
+        margin-bottom: 1rem;
+    }
+
+    .toast-container {
+        max-width: 100%;
+    }
+
+    .filtersScheduleModal {
+        width: 100%;
+        margin: 0;
+    }
+
+    .filtersScheduleModal .modal-dialog {
+        margin: 0;
+    }
+
+    .filtersScheduleModal .modal-content {
+        border-radius: 0;
+    }
+
+    .fc-header-toolbar {
+        display: none;
+    }
 }

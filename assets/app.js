@@ -39,7 +39,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let calendar;
     let currentView = 'timeGridWeek'; // Default view
+    function calculateStats() {
+        const events = calendar.getEvents();
+        const totalEvents = events.length;
 
+        if (totalEvents === 0) {
+            document.getElementById('statsContent').textContent = 'Brak wydarzeń do analizy.';
+            return;
+        }
+
+        // Liczenie liczby wystąpień dla każdego typu zajęć
+        const eventTypeCounts = {};
+        events.forEach(event => {
+            const type = event.extendedProps.type || 'brak_formy';
+            if (!eventTypeCounts[type]) {
+                eventTypeCounts[type] = 0;
+            }
+            eventTypeCounts[type]++;
+        });
+
+        // Obliczenie procentowego udziału i formatu wyświetlania z ilością
+        const stats = Object.entries(eventTypeCounts).map(([type, count]) => {
+            const percentage = ((count / totalEvents) * 100).toFixed(2);
+            return `${type}: ${count} (${percentage}%)`;
+        });
+
+        // Wyświetlenie statystyk w elemencie o id 'statsContent'
+        document.getElementById('statsContent').innerHTML = stats.join('<br>');
+    }
     // Ustawianie ekranu startowego z linku
     function setFormValuesFromURL() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -176,12 +203,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             },
             datesSet: function () {
-                // Update view change button text
                 currentView = calendar.view.type;
                 updateViewButton();
-
-                legendUpdated = false; // Reset flag when view changes
+                legendUpdated = false;
                 updateLegend(calendar);
+                calculateStats();
             },
             height : 600,
         })
@@ -190,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setFormValuesFromURL();
     fetchAndRenderEvent();
+    calculateStats();
 
     const searchButtons = document.querySelectorAll('form button[type="submit"]');
 
